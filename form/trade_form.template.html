@@ -1,0 +1,1158 @@
+<title>Life Alert Trade Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper:#F2F3F6; --surface:#FFFFFF; --surface-2:#E9EBF0;
+    --ink:#171A20; --muted:#5B6270; --line:#D3D7E0; --line-strong:#AEB5C4;
+    --accent:#1F4E79; --accent-soft:#E3ECF5; --accent-ink:#1F4E79; --on-accent:#FFFFFF;
+    --cond:#9A5B0B; --cond-soft:#F7EAD6;
+    --good:#1B6E43; --good-soft:#DDF0E6;
+    --shadow:0 1px 2px rgba(23,26,32,.06), 0 6px 16px -8px rgba(23,26,32,.18);
+    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --display:"Bitter", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#12141A; --surface:#1A1D25; --surface-2:#232733;
+      --ink:#E6E9EF; --muted:#98A0B0; --line:#2E3341; --line-strong:#414861;
+      --accent:#79ADDD; --accent-soft:#1B2C3E; --accent-ink:#9CC6EA; --on-accent:#0E1520;
+      --cond:#D9A055; --cond-soft:#33281A;
+      --good:#63BE8C; --good-soft:#17301F;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#12141A; --surface:#1A1D25; --surface-2:#232733;
+    --ink:#E6E9EF; --muted:#98A0B0; --line:#2E3341; --line-strong:#414861;
+    --accent:#79ADDD; --accent-soft:#1B2C3E; --accent-ink:#9CC6EA; --on-accent:#0E1520;
+    --cond:#D9A055; --cond-soft:#33281A;
+    --good:#63BE8C; --good-soft:#17301F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  [hidden] { display:none !important; }
+
+  /* ---------- gate ---------- */
+  .gate { max-width:400px; margin:14vh auto 0; padding:0 20px; }
+  .gate-card {
+    background:var(--surface); border:1px solid var(--line); border-radius:5px;
+    padding:26px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px;
+  }
+  .gate h1 { font-size:26px; margin:0; }
+  .gate p { margin:0; color:var(--muted); font-size:14px; }
+
+  /* ---------- masthead ---------- */
+  .masthead { border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:8px; }
+  .eyebrow {
+    font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:baseline;
+  }
+  .eyebrow .dot { color:var(--line-strong); }
+  h1 {
+    font-family:var(--display); font-weight:700; font-size:clamp(30px,5vw,42px);
+    line-height:1.08; margin:8px 0 6px; letter-spacing:-.015em; text-wrap:balance;
+  }
+  .standfirst { color:var(--muted); max-width:62ch; margin:0; font-size:14.5px; }
+
+  .notice {
+    margin-top:16px; padding:10px 13px; border-radius:3px; font-size:13.5px;
+    border-left:3px solid var(--cond); background:var(--cond-soft); color:var(--ink);
+  }
+
+  /* ---------- record ---------- */
+  section { margin-top:34px; }
+  .sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:14px; }
+  .sec-head h2 {
+    font-family:var(--display); font-weight:600; font-size:19px; margin:0; letter-spacing:-.01em;
+  }
+  .sec-head .rule { flex:1; height:1px; background:var(--line); }
+  .sec-head .hint { font-size:12.5px; color:var(--muted); }
+
+  .sides { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:720px) { .sides { grid-template-columns:1fr; } }
+
+  .side {
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    padding:16px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow);
+  }
+  .side-tag {
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:500;
+  }
+
+  label.fld, .fld { display:flex; flex-direction:column; gap:5px; }
+  .fld-label {
+    font-size:12px; font-weight:600; letter-spacing:.02em; color:var(--muted);
+    text-transform:uppercase;
+  }
+  .fld-label .lc { text-transform:none; font-weight:400; }
+  select, input[type="text"], input[type="password"], textarea {
+    font-family:var(--sans); font-size:14.5px; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
+    padding:8px 10px; width:100%; transition:border-color .12s, box-shadow .12s;
+  }
+  textarea { resize:vertical; min-height:74px; line-height:1.5; }
+  select:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* ---------- combobox ---------- */
+  .combo { position:relative; }
+  .combo-list {
+    position:absolute; z-index:40; top:calc(100% + 3px); left:0; right:0;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
+    max-height:230px; overflow-y:auto; box-shadow:var(--shadow); padding:3px;
+  }
+  .opt {
+    display:flex; align-items:baseline; gap:8px; padding:6px 8px; border-radius:2px;
+    cursor:pointer; font-size:14px;
+  }
+  .opt[aria-selected="true"] { background:var(--accent-soft); }
+  .opt .pos {
+    font-family:var(--mono); font-size:10.5px; color:var(--accent-ink);
+    border:1px solid var(--line); border-radius:2px; padding:1px 4px; flex:none;
+  }
+  .opt .tm { font-family:var(--mono); font-size:11px; color:var(--muted); margin-left:auto; }
+  .opt.none { color:var(--muted); font-style:italic; cursor:default; }
+
+  /* ---------- chips ---------- */
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chips:empty::after { content:"nothing yet"; font-size:13px; color:var(--muted); font-style:italic; }
+  .chip {
+    display:inline-flex; align-items:center; gap:7px; padding:4px 6px 4px 9px;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:3px;
+    font-size:13.5px; line-height:1.3;
+  }
+  .chip.pick { font-family:var(--mono); font-size:12.5px; }
+  .chip .x {
+    border:none; background:none; color:var(--muted); cursor:pointer;
+    font-size:15px; line-height:1; padding:0 2px; border-radius:2px;
+  }
+  .chip .x:hover { color:var(--cond); }
+
+  .pick-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:6px; align-items:end; }
+  .pick-row select { padding:7px 6px; font-size:13.5px; }
+  .btn-add {
+    font-family:var(--sans); font-size:13px; font-weight:600; padding:8px 12px;
+    background:var(--surface-2); color:var(--ink); border:1px solid var(--line-strong);
+    border-radius:3px; cursor:pointer; white-space:nowrap;
+  }
+  .btn-add:hover { border-color:var(--accent); color:var(--accent-ink); }
+
+  /* ---------- conditional ---------- */
+  .cond-toggle {
+    display:flex; align-items:flex-start; gap:10px; background:var(--surface);
+    border:1px solid var(--line); border-left:3px solid var(--cond); border-radius:4px;
+    padding:13px 15px; cursor:pointer;
+  }
+  .cond-toggle input { margin:3px 0 0; accent-color:var(--cond); width:16px; height:16px; flex:none; }
+  .cond-toggle .t { font-weight:600; font-size:14.5px; }
+  .cond-toggle .d { font-size:13px; color:var(--muted); }
+
+  #condBody { margin-top:16px; display:flex; flex-direction:column; gap:16px; }
+  .cond-card {
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    padding:16px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow);
+  }
+  .howto { font-size:13px; color:var(--muted); margin:0; }
+  .howto strong { color:var(--ink); font-weight:600; }
+  .subhead {
+    display:flex; align-items:center; gap:10px; margin-top:2px;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .subhead::after { content:""; flex:1; height:1px; background:var(--line); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .three { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; }
+  @media (max-width:560px) { .two, .three { grid-template-columns:1fr; } }
+
+  .presets { display:flex; gap:6px; flex-wrap:wrap; }
+  .preset {
+    font-family:var(--sans); font-size:12.5px; padding:5px 10px; cursor:pointer;
+    background:transparent; color:var(--muted);
+    border:1px solid var(--line-strong); border-radius:99px;
+  }
+  .preset:hover { color:var(--accent-ink); border-color:var(--accent); }
+  .preset[aria-pressed="true"] {
+    background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); font-weight:600;
+  }
+  .window-read {
+    font-family:var(--mono); font-size:12.5px; color:var(--ink);
+    background:var(--surface-2); border-radius:3px; padding:7px 10px;
+  }
+  .window-read.bad { color:var(--cond); background:var(--cond-soft); }
+
+  .scope-note { margin:0 0 14px; }
+  .phrasing-card {
+    background:var(--surface-2); border-radius:4px; padding:13px 15px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .phrasing { display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none; }
+  .phrasing li { display:grid; grid-template-columns:34px 1fr; gap:9px; align-items:baseline; font-size:13px; }
+  .phrasing .mark {
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    font-weight:600; text-align:right;
+  }
+  .phrasing .say .mark { color:var(--good); }
+  .phrasing .avoid .mark { color:var(--cond); }
+  .phrasing q { font-family:var(--mono); font-size:12.5px; color:var(--ink); }
+  .phrasing .avoid q { text-decoration:line-through; text-decoration-color:var(--cond); color:var(--muted); }
+  .phrasing .why { color:var(--muted); }
+
+  .branches { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:720px) { .branches { grid-template-columns:1fr; } }
+  .branch {
+    background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:15px;
+    display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow);
+  }
+  .branch-tag {
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--cond); font-weight:500;
+  }
+
+  /* ---------- preview + submit ---------- */
+  .preview {
+    background:var(--surface-2); border:1px solid var(--line); border-radius:4px;
+    padding:15px 17px; font-family:var(--mono); font-size:13px; line-height:1.7;
+    white-space:pre-wrap; overflow-x:auto;
+  }
+  .preview .ph { color:var(--muted); font-style:italic; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:16px; }
+  .btn {
+    font-family:var(--sans); font-size:14.5px; font-weight:600; padding:11px 20px;
+    border-radius:3px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary { background:var(--accent); color:var(--on-accent); }
+  .btn-primary:disabled { opacity:.45; cursor:not-allowed; }
+  .btn-ghost { background:var(--surface); color:var(--ink); border-color:var(--line-strong); }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent-ink); }
+  .status { font-size:13.5px; color:var(--muted); padding-bottom:11px; }
+  .status.ok { color:var(--good); font-weight:600; }
+  .status.err { color:var(--cond); font-weight:600; }
+
+  /* ---------- ledger ---------- */
+  .entry {
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .entry.example { border-style:dashed; background:transparent; }
+  .entry-top { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; margin-bottom:7px; }
+  .entry-when { font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  .badge {
+    font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    padding:2px 6px; border-radius:2px; font-weight:500;
+  }
+  .badge.cond { background:var(--cond-soft); color:var(--cond); }
+  .badge.clean { background:var(--good-soft); color:var(--good); }
+  .badge.ex { background:var(--surface-2); color:var(--muted); }
+  .entry-line { font-size:14px; margin:2px 0; }
+  .entry-cond {
+    margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); font-size:13.5px;
+  }
+  .entry-cond .q { color:var(--muted); }
+  .entry-terms { font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:5px; }
+  footer {
+    margin-top:44px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:12.5px; color:var(--muted);
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+
+<!-- ============ password gate ============ -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <h1>Life Alert Fantasy</h1>
+    <p>The trade ledger is league-only. Enter the league password to file or read trades.</p>
+    <label class="fld">
+      <span class="fld-label">League password</span>
+      <input type="password" id="gatePw" autocomplete="current-password">
+    </label>
+    <button type="button" class="btn btn-primary" id="gateBtn">Enter</button>
+    <span class="status" id="gateStatus"></span>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>Life Alert Fantasy</span><span class="dot">/</span>
+      <span>Dynasty</span><span class="dot">/</span>
+      <span>__SEASON__ Season</span><span class="dot">/</span>
+      <span>Commissioner: Gilmore</span>
+    </div>
+    <h1>Trade Ledger</h1>
+    <p class="standfirst">
+      File a trade here so it's on the record. Conditional picks are welcome — write the
+      condition however you'd say it out loud, then pin down how it gets measured.
+    </p>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <!-- ============ the two sides ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>The trade</h2><div class="rule"></div>
+      <span class="hint">The part that happens no matter what</span>
+    </div>
+    <p class="howto scope-note">
+      Only what changes hands <strong>either way</strong> goes here — the settled half of the deal.
+      A pick whose fate depends on the condition belongs in <strong>Conditions</strong> below and
+      <strong>nowhere else</strong>. Listing it in both places is the one mistake that makes a trade
+      impossible to settle later, because nobody can tell whether it moves once or twice.
+    </p>
+    <div class="sides">
+      <div class="side">
+        <div class="side-tag">Side A — gives up</div>
+        <label class="fld">
+          <span class="fld-label">Manager</span>
+          <select id="mgrA"></select>
+        </label>
+        <div class="fld">
+          <span class="fld-label">Players</span>
+          <div class="combo">
+            <input type="text" id="plInA" placeholder="Type a player's name…" autocomplete="off"
+                   role="combobox" aria-expanded="false" aria-controls="plListA">
+            <div class="combo-list" id="plListA" role="listbox" hidden></div>
+          </div>
+          <div class="chips" id="plChipsA"></div>
+        </div>
+        <div class="fld">
+          <span class="fld-label">Draft picks</span>
+          <div class="pick-row">
+            <select id="pkYearA" aria-label="Pick year"></select>
+            <select id="pkRoundA" aria-label="Pick round"></select>
+            <select id="pkViaA" aria-label="Originally belonged to"></select>
+            <button type="button" class="btn-add" id="pkAddA">Add</button>
+          </div>
+          <div class="chips" id="pkChipsA"></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="side-tag">Side B — gives up</div>
+        <label class="fld">
+          <span class="fld-label">Manager</span>
+          <select id="mgrB"></select>
+        </label>
+        <div class="fld">
+          <span class="fld-label">Players</span>
+          <div class="combo">
+            <input type="text" id="plInB" placeholder="Type a player's name…" autocomplete="off"
+                   role="combobox" aria-expanded="false" aria-controls="plListB">
+            <div class="combo-list" id="plListB" role="listbox" hidden></div>
+          </div>
+          <div class="chips" id="plChipsB"></div>
+        </div>
+        <div class="fld">
+          <span class="fld-label">Draft picks</span>
+          <div class="pick-row">
+            <select id="pkYearB" aria-label="Pick year"></select>
+            <select id="pkRoundB" aria-label="Pick round"></select>
+            <select id="pkViaB" aria-label="Originally belonged to"></select>
+            <button type="button" class="btn-add" id="pkAddB">Add</button>
+          </div>
+          <div class="chips" id="pkChipsB"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ conditional clause ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>Conditions</h2><div class="rule"></div>
+      <span class="hint">The part that depends on what happens</span>
+    </div>
+
+    <label class="cond-toggle">
+      <input type="checkbox" id="condOn">
+      <span>
+        <span class="t">This trade has a condition</span><br>
+        <span class="d">Something has to happen before we know which pick changes hands. Every
+          pick riding on it gets listed down here — not up in the trade.</span>
+      </span>
+    </label>
+
+    <div id="condBody" hidden>
+      <div class="cond-card">
+        <label class="fld">
+          <span class="fld-label">What's the condition?</span>
+          <textarea id="condText" placeholder="e.g. &quot;if Ashton Jeanty finishes as a top 10 RB&quot;"></textarea>
+        </label>
+        <p class="howto">
+          This is the <strong>only</strong> place you describe what has to happen — write it once,
+          here, the way you'd say it out loud. The boxes below don't ask for it again; they just
+          pin down <strong>which weeks</strong> it's measured over and <strong>which picks</strong>
+          move each way.
+        </p>
+
+        <div class="phrasing-card">
+          <div class="subhead">Say it with a number</div>
+          <p class="howto">
+            In December this gets settled against the actual scoring, so write it the way it will be
+            counted. <strong>Name the player, name the pool, give a number.</strong>
+          </p>
+          <ul class="phrasing">
+            <li class="say"><span class="mark">say</span>
+              <span><q>top 20 RB</q> <span class="why">— a number and a pool, nothing to argue about</span></span></li>
+            <li class="avoid"><span class="mark">not</span>
+              <span><q>an RB2</q> <span class="why">— half the league reads that as top 12, half as top 24</span></span></li>
+            <li class="say"><span class="mark">say</span>
+              <span><q>top 2 RB</q> <span class="why">— if you mean the second-best back, say the number</span></span></li>
+            <li class="avoid"><span class="mark">not</span>
+              <span><q>the RB2</q> <span class="why">— reads as a tier to some and a rank to others; they're 22 spots apart</span></span></li>
+            <li class="say"><span class="mark">say</span>
+              <span><q>1,000 rushing yards</q>, <q>1,500 yards from scrimmage</q>, <q>plays 14 games</q>
+              <span class="why">— all countable</span></span></li>
+            <li class="avoid"><span class="mark">not</span>
+              <span><q>has a big year</q>, <q>stays healthy</q> <span class="why">— nothing to measure</span></span></li>
+            <li class="say"><span class="mark">say</span>
+              <span><q>top 20 flex</q>, <q>top 30 superflex</q>
+              <span class="why">— flex ranks RB/WR/TE together, superflex adds QBs; both work</span></span></li>
+          </ul>
+
+          <div class="subhead">Or hang it on a manager's season</div>
+          <p class="howto">
+            A condition doesn't have to be about a player. How someone's <strong>team</strong>
+            finishes settles just as cleanly — name the manager and say which finish you mean.
+          </p>
+          <ul class="phrasing">
+            <li class="say"><span class="mark">say</span>
+              <span><q>Topper makes the playoffs</q>, <q>Maggie wins the championship</q>,
+              <q>Topper gets a top 2 seed</q>, <q>she wins at least 9 games</q>,
+              <q>he finishes dead last</q></span></li>
+            <li class="say"><span class="mark">also</span>
+              <span>a surname is enough <span class="why">— unless two managers share one, in which
+              case use a first name so it lands on the right team</span></span></li>
+          </ul>
+          <p class="howto">
+            If a condition doesn't name a number, it can't settle itself — it lands on the
+            commissioner's desk in December, which is exactly the argument you were trying to
+            avoid. Agree on the number now, while you're both still happy with the deal.
+          </p>
+        </div>
+
+        <div class="fld">
+          <span class="fld-label">Player it hinges on <span class="lc">(if any)</span></span>
+          <p class="howto">Skip this if the condition rides on a manager's finish rather than a
+            player — just name them in the box above.</p>
+          <div class="combo">
+            <input type="text" id="plInC" placeholder="Optional — helps settle it automatically" autocomplete="off"
+                   role="combobox" aria-expanded="false" aria-controls="plListC">
+            <div class="combo-list" id="plListC" role="listbox" hidden></div>
+          </div>
+          <div class="chips" id="plChipsC"></div>
+        </div>
+
+        <div class="subhead">How it gets measured</div>
+        <p class="howto">Scored in the league's full PPR, same as every other week of the season.</p>
+        <div class="two">
+          <label class="fld">
+            <span class="fld-label">Ranked by</span>
+            <select id="condRank">
+              <option value="total">Total points</option>
+              <option value="ppg">Points per game</option>
+            </select>
+          </label>
+          <label class="fld">
+            <span class="fld-label">Settle it</span>
+            <select id="condWhen">
+              <option value="regular_season_end">After the regular season (Week 15)</option>
+              <option value="playoffs_end">After the playoffs (Week 17)</option>
+              <option value="commissioner_call">Whenever — commissioner decides</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="fld">
+          <span class="fld-label">Weeks that count</span>
+          <div class="presets">
+            <button type="button" class="preset" data-from="1" data-to="15">Full regular season</button>
+            <button type="button" class="preset" data-from="1" data-to="17">Whole season, playoffs included</button>
+          </div>
+          <div class="three" style="margin-top:8px">
+            <label class="fld">
+              <span class="fld-label">From week</span>
+              <select id="wkFrom" aria-label="First week that counts"></select>
+            </label>
+            <label class="fld">
+              <span class="fld-label">Through week</span>
+              <select id="wkTo" aria-label="Last week that counts"></select>
+            </label>
+          </div>
+          <div class="window-read" id="wkRead"></div>
+        </div>
+      </div>
+
+      <div class="subhead">Which picks move</div>
+      <p class="howto">
+        These are the two ways it can land. Add every pick that rides on the condition — leave a side
+        empty if nothing moves that way.
+      </p>
+      <div class="branches">
+        <div class="branch">
+          <div class="branch-tag">If the condition is met</div>
+          <div class="fld">
+            <span class="fld-label">Picks that move</span>
+            <div class="pick-row">
+              <select id="s1Year" aria-label="Pick year"></select>
+              <select id="s1Round" aria-label="Pick round"></select>
+              <select id="s1Dir" aria-label="Direction"></select>
+              <button type="button" class="btn-add" id="s1Add">Add</button>
+            </div>
+            <div class="chips" id="s1Chips"></div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-tag">If it isn't</div>
+          <div class="fld">
+            <span class="fld-label">Picks that move</span>
+            <div class="pick-row">
+              <select id="s2Year" aria-label="Pick year"></select>
+              <select id="s2Round" aria-label="Pick round"></select>
+              <select id="s2Dir" aria-label="Direction"></select>
+              <button type="button" class="btn-add" id="s2Add">Add</button>
+            </div>
+            <div class="chips" id="s2Chips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ file it ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>File it</h2><div class="rule"></div>
+      <span class="hint">Read it back before you submit</span>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="actions">
+      <label class="fld" style="flex:0 0 200px">
+        <span class="fld-label">Filed by</span>
+        <select id="filedBy"></select>
+      </label>
+      <button type="button" class="btn btn-primary" id="submitBtn">File this trade</button>
+      <button type="button" class="btn btn-ghost" id="copyBtn">Copy record</button>
+      <span class="status" id="status"></span>
+    </div>
+  </section>
+
+  <!-- ============ ledger ============ -->
+  <section>
+    <div class="sec-head">
+      <h2>On the record</h2><div class="rule"></div>
+      <span class="hint" id="ledgerCount"></span>
+    </div>
+    <div id="ledger"></div>
+  </section>
+
+  <footer>
+    Player and manager names come straight from the ESPN league, so every entry maps to a
+    trackable identity. Nothing here touches ESPN — this ledger is the league's own record.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const MANAGERS   = __MANAGERS_JSON__;
+  const PLAYERS    = __PLAYERS_JSON__;
+  const SEASON     = __SEASON__;
+  const PICK_YEARS = __PICK_YEARS__;
+  const ENDPOINT   = __ENDPOINT__;      // null until the worker is deployed
+  const REG_WEEKS  = __REG_WEEKS__;     // last week of the regular season
+  const MAX_WEEK   = __MAX_WEEK__;      // last week of the playoffs
+  const ROUNDS = [1, 2, 3, 4];
+
+  const ACTIVE = MANAGERS.filter(m => m.claimed);
+  const byId = id => MANAGERS.find(m => m.id === id) || null;
+  const shortName = id => {
+    const m = byId(id);
+    if (!m) return "—";
+    const parts = m.name.split(" ");
+    return parts.length > 1 ? parts[parts.length - 1] : m.name;
+  };
+  const ord = r => ["", "1st", "2nd", "3rd", "4th"][r] || (r + "th");
+  const pickLabel = p => `${p.year} ${ord(p.round)}` + (p.via && p.via !== p.owner ? ` via ${shortName(p.via)}` : "");
+  const $ = id => document.getElementById(id);
+
+  const SCORING = "ppr";                 // the league is full PPR; not a per-trade choice
+  const SCORING_TEXT = "full PPR";
+  const RANK_TEXT = { total: "total points", ppg: "points per game" };
+
+  const state = {
+    a: { manager: "", players: [], picks: [] },
+    b: { manager: "", players: [], picks: [] },
+    conditional: false,
+    condition: {
+      text: "", subject: null, when: "regular_season_end",
+      rank: "total", from_week: 1, to_week: REG_WEEKS
+    },
+    scenarios: [ { picks: [] }, { picks: [] } ],
+    filedBy: ""
+  };
+
+  let password = "";
+
+  /* ---------- select helpers ---------- */
+  function fillManagers(sel, placeholder) {
+    sel.innerHTML = "";
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = placeholder; sel.appendChild(o);
+    ACTIVE.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m.id; opt.textContent = m.name; sel.appendChild(opt);
+    });
+  }
+  function fillOptions(sel, values, fmt) {
+    sel.innerHTML = "";
+    values.forEach(v => {
+      const o = document.createElement("option");
+      o.value = String(v); o.textContent = fmt ? fmt(v) : String(v); sel.appendChild(o);
+    });
+  }
+
+  fillManagers($("mgrA"), "Choose a manager…");
+  fillManagers($("mgrB"), "Choose a manager…");
+  fillManagers($("filedBy"), "Choose…");
+  ["pkYearA","pkYearB","s1Year","s2Year"].forEach(id => fillOptions($(id), PICK_YEARS));
+  ["pkRoundA","pkRoundB","s1Round","s2Round"].forEach(id => fillOptions($(id), ROUNDS, r => ord(r) + " rd"));
+
+  const WEEKS = Array.from({ length: MAX_WEEK }, (_, i) => i + 1);
+  const weekLabel = w => "Week " + w + (w > REG_WEEKS ? " (playoffs)" : "");
+  fillOptions($("wkFrom"), WEEKS, weekLabel);
+  fillOptions($("wkTo"), WEEKS, weekLabel);
+  $("wkFrom").value = "1";
+  $("wkTo").value = String(REG_WEEKS);
+
+  function refreshViaSelects() {
+    [["pkViaA", "a"], ["pkViaB", "b"]].forEach(([id, side]) => {
+      const sel = $(id), keep = sel.value;
+      sel.innerHTML = "";
+      ACTIVE.forEach(m => {
+        const o = document.createElement("option");
+        o.value = m.id; o.textContent = "via " + shortName(m.id); sel.appendChild(o);
+      });
+      sel.value = (keep && ACTIVE.some(m => m.id === keep)) ? keep : (state[side].manager || ACTIVE[0].id);
+    });
+    ["s1Dir", "s2Dir"].forEach(id => {
+      const sel = $(id), keep = sel.value;
+      sel.innerHTML = "";
+      const pairs = [];
+      if (state.a.manager && state.b.manager) {
+        pairs.push([state.a.manager + ">" + state.b.manager, shortName(state.a.manager) + " → " + shortName(state.b.manager)]);
+        pairs.push([state.b.manager + ">" + state.a.manager, shortName(state.b.manager) + " → " + shortName(state.a.manager)]);
+      } else {
+        pairs.push(["", "Pick both managers first"]);
+      }
+      pairs.forEach(([v, t]) => {
+        const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o);
+      });
+      if (keep && pairs.some(p => p[0] === keep)) sel.value = keep;
+    });
+  }
+
+  /* ---------- player combobox ---------- */
+  function combobox(inputId, listId, onPick) {
+    const input = $(inputId), list = $(listId);
+    let matches = [], cursor = -1;
+
+    function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); cursor = -1; }
+    function render() {
+      list.innerHTML = "";
+      if (!matches.length) {
+        const d = document.createElement("div");
+        d.className = "opt none"; d.textContent = "No player by that name";
+        list.appendChild(d);
+      }
+      matches.forEach((p, i) => {
+        const row = document.createElement("div");
+        row.className = "opt"; row.setAttribute("role", "option");
+        row.setAttribute("aria-selected", String(i === cursor));
+        const pos = document.createElement("span"); pos.className = "pos"; pos.textContent = p.pos;
+        const nm = document.createElement("span"); nm.textContent = p.name;
+        const tm = document.createElement("span"); tm.className = "tm"; tm.textContent = p.team;
+        row.append(pos, nm, tm);
+        row.addEventListener("mousedown", e => { e.preventDefault(); choose(p); });
+        list.appendChild(row);
+      });
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+    function choose(p) { onPick(p); input.value = ""; matches = []; close(); }
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 2) { close(); return; }
+      matches = PLAYERS.filter(p => p.name.toLowerCase().includes(q)).slice(0, 30);
+      cursor = matches.length ? 0 : -1;
+      render();
+    });
+    input.addEventListener("keydown", e => {
+      if (list.hidden) return;
+      if (e.key === "ArrowDown") { e.preventDefault(); cursor = Math.min(cursor + 1, matches.length - 1); render(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); cursor = Math.max(cursor - 1, 0); render(); }
+      else if (e.key === "Enter") { e.preventDefault(); if (matches[cursor]) choose(matches[cursor]); }
+      else if (e.key === "Escape") { close(); }
+    });
+    input.addEventListener("blur", () => setTimeout(close, 120));
+  }
+
+  /* ---------- chips ---------- */
+  function renderChips(el, items, label, remove, mono) {
+    el.innerHTML = "";
+    items.forEach((it, i) => {
+      const c = document.createElement("span");
+      c.className = "chip" + (mono ? " pick" : "");
+      const t = document.createElement("span"); t.textContent = label(it);
+      const x = document.createElement("button");
+      x.type = "button"; x.className = "x"; x.textContent = "×";
+      x.setAttribute("aria-label", "Remove " + label(it));
+      x.addEventListener("click", () => { remove(i); redraw(); });
+      c.append(t, x); el.appendChild(c);
+    });
+  }
+
+  /* ---------- wiring ---------- */
+  ["a", "b"].forEach(side => {
+    const S = side.toUpperCase();
+    combobox("plIn" + S, "plList" + S, p => {
+      if (!state[side].players.some(x => x.id === p.id)) state[side].players.push(p);
+      redraw();
+    });
+    $("mgr" + S).addEventListener("change", e => {
+      state[side].manager = e.target.value;
+      const other = side === "a" ? "b" : "a";
+      if (state[other].manager === e.target.value) {
+        state[other].manager = "";
+        $("mgr" + other.toUpperCase()).value = "";
+      }
+      $("pkVia" + S).value = e.target.value || (ACTIVE[0] && ACTIVE[0].id);
+      redraw();
+    });
+    $("pkAdd" + S).addEventListener("click", () => {
+      if (!state[side].manager) { flash("Pick the manager on this side first.", true); return; }
+      state[side].picks.push({
+        year: Number($("pkYear" + S).value),
+        round: Number($("pkRound" + S).value),
+        via: $("pkVia" + S).value,
+        owner: state[side].manager
+      });
+      redraw();
+    });
+  });
+
+  combobox("plInC", "plListC", p => { state.condition.subject = p; redraw(); });
+
+  $("condOn").addEventListener("change", e => {
+    state.conditional = e.target.checked;
+    $("condBody").hidden = !e.target.checked;
+    redraw();
+  });
+  $("condText").addEventListener("input", e => { state.condition.text = e.target.value; redraw(); });
+  $("condWhen").addEventListener("change", e => { state.condition.when = e.target.value; redraw(); });
+  $("condRank").addEventListener("change", e => { state.condition.rank = e.target.value; redraw(); });
+  $("filedBy").addEventListener("change", e => { state.filedBy = e.target.value; });
+
+  $("wkFrom").addEventListener("change", e => { state.condition.from_week = Number(e.target.value); redraw(); });
+  $("wkTo").addEventListener("change", e => { state.condition.to_week = Number(e.target.value); redraw(); });
+  document.querySelectorAll(".preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.condition.from_week = Number(btn.dataset.from);
+      state.condition.to_week = Number(btn.dataset.to);
+      $("wkFrom").value = btn.dataset.from;
+      $("wkTo").value = btn.dataset.to;
+      redraw();
+    });
+  });
+
+  [0, 1].forEach(i => {
+    const n = i + 1;
+    $("s" + n + "Add").addEventListener("click", () => {
+      const dir = $("s" + n + "Dir").value;
+      if (!dir) { flash("Pick both managers first.", true); return; }
+      const [from, to] = dir.split(">");
+      state.scenarios[i].picks.push({
+        year: Number($("s" + n + "Year").value),
+        round: Number($("s" + n + "Round").value),
+        from, to, via: from, owner: from
+      });
+      redraw();
+    });
+  });
+
+  /* ---------- the measurement window, in words ---------- */
+  function windowText() {
+    const { from_week: f, to_week: t } = state.condition;
+    if (f > t) return { bad: true, text: `Week ${f} is after week ${t} — flip them.` };
+    if (f === 1 && t === REG_WEEKS) return { bad: false, text: `Weeks 1–${t} — the full regular season` };
+    if (f === 1 && t === MAX_WEEK) return { bad: false, text: `Weeks 1–${t} — regular season and playoffs` };
+    if (f === t) return { bad: false, text: `Week ${f} only` };
+    if (t === REG_WEEKS) return { bad: false, text: `Weeks ${f}–${t} — from week ${f} to the end of the regular season` };
+    if (t === MAX_WEEK) return { bad: false, text: `Weeks ${f}–${t} — from week ${f} through the playoffs` };
+    return { bad: false, text: `Weeks ${f}–${t}` };
+  }
+
+  /* ---------- preview ---------- */
+  function assetPhrase(side) {
+    const s = state[side];
+    const bits = s.players.map(p => `${p.name} (${p.pos})`).concat(s.picks.map(pickLabel));
+    return bits.length ? bits.join(", ") : null;
+  }
+  function buildPreview() {
+    const A = state.a.manager, B = state.b.manager;
+    if (!A || !B) return { ok: false, text: "Choose a manager on each side to see the trade written out." };
+    const aGives = assetPhrase("a"), bGives = assetPhrase("b");
+    if (!aGives && !bGives) return { ok: false, text: "Add at least one player or pick to either side." };
+
+    const lines = [];
+    lines.push(`${shortName(A)} sends  →  ${shortName(B)}`);
+    lines.push(`    ${aGives || "nothing"}`);
+    lines.push(`${shortName(B)} sends  →  ${shortName(A)}`);
+    lines.push(`    ${bGives || "nothing"}`);
+
+    if (state.conditional) {
+      const c = state.condition;
+      lines.push("");
+      lines.push("CONDITIONAL");
+      lines.push(`    Condition: ${c.text.trim() || "(not written yet)"}`);
+      if (c.subject) lines.push(`    Hinges on: ${c.subject.name} (${c.subject.pos}, ${c.subject.team})`);
+      lines.push(`    Measured:  ${windowText().text}, by ${RANK_TEXT[c.rank]}, ${SCORING_TEXT}`);
+      lines.push(`    Settled:   ${$("condWhen").selectedOptions[0].textContent}`);
+      state.scenarios.forEach((s, i) => {
+        const head = i === 0 ? "If met:     " : "If not:     ";
+        const picks = s.picks.length
+          ? s.picks.map(p => `${p.year} ${ord(p.round)} ${shortName(p.from)} → ${shortName(p.to)}`).join("; ")
+          : "no picks move";
+        lines.push(`    ${head}${picks}`);
+      });
+    }
+    return { ok: true, text: lines.join("\n") };
+  }
+
+  /** A pick riding on the condition must appear in the condition only. Same
+      year, same round, same original owner in both places means it was entered
+      twice — and then nobody can tell if it moves once or twice. */
+  function doubleListedPick() {
+    const settled = state.a.picks.concat(state.b.picks);
+    for (const sc of state.scenarios) {
+      for (const p of sc.picks) {
+        if (settled.some(t => t.year === p.year && t.round === p.round && t.via === p.via)) {
+          return pickLabel(p);
+        }
+      }
+    }
+    return null;
+  }
+
+  function validate() {
+    if (!state.a.manager || !state.b.manager) return "Both managers are required.";
+    if (!assetPhrase("a") && !assetPhrase("b")) return "Add at least one player or pick.";
+    if (state.conditional) {
+      if (!state.condition.text.trim()) return "Write out the condition.";
+      if (state.condition.from_week > state.condition.to_week) return "The week range runs backwards.";
+      if (!state.scenarios.some(s => s.picks.length)) return "Add the picks that move in at least one scenario.";
+      const doubled = doubleListedPick();
+      if (doubled) return `The ${doubled} is listed both in the trade and under the condition — a conditional pick belongs only under the condition.`;
+    }
+    return null;
+  }
+
+  function redraw() {
+    refreshViaSelects();
+    ["a", "b"].forEach(side => {
+      const S = side.toUpperCase();
+      renderChips($("plChips" + S), state[side].players, p => `${p.name} · ${p.pos}`,
+                  i => state[side].players.splice(i, 1), false);
+      renderChips($("pkChips" + S), state[side].picks, pickLabel,
+                  i => state[side].picks.splice(i, 1), true);
+    });
+    renderChips($("plChipsC"), state.condition.subject ? [state.condition.subject] : [],
+                p => `${p.name} · ${p.pos}`, () => { state.condition.subject = null; }, false);
+    [0, 1].forEach(i => {
+      renderChips($("s" + (i + 1) + "Chips"), state.scenarios[i].picks,
+                  p => `${p.year} ${ord(p.round)} · ${shortName(p.from)}→${shortName(p.to)}`,
+                  k => state.scenarios[i].picks.splice(k, 1), true);
+    });
+
+    const w = windowText();
+    $("wkRead").textContent = w.text;
+    $("wkRead").className = "window-read" + (w.bad ? " bad" : "");
+    document.querySelectorAll(".preset").forEach(b => {
+      b.setAttribute("aria-pressed",
+        String(Number(b.dataset.from) === state.condition.from_week &&
+               Number(b.dataset.to) === state.condition.to_week));
+    });
+
+    const pv = buildPreview();
+    const el = $("preview");
+    el.innerHTML = "";
+    const span = document.createElement("span");
+    if (!pv.ok) span.className = "ph";
+    span.textContent = pv.text;
+    el.appendChild(span);
+
+    $("submitBtn").disabled = !!validate();
+  }
+
+  /* ---------- record ---------- */
+  function record() {
+    const c = state.condition;
+    return {
+      season: SEASON,
+      filed_by: state.filedBy ? byId(state.filedBy).name : null,
+      side_a: {
+        manager_id: state.a.manager, manager: byId(state.a.manager).name,
+        players: state.a.players, picks: state.a.picks
+      },
+      side_b: {
+        manager_id: state.b.manager, manager: byId(state.b.manager).name,
+        players: state.b.players, picks: state.b.picks
+      },
+      conditional: state.conditional,
+      condition: state.conditional ? {
+        text: c.text.trim(),
+        subject_player: c.subject,
+        settle_when: c.when,
+        scoring: SCORING,
+        rank_by: c.rank,
+        from_week: c.from_week,
+        to_week: c.to_week,
+        window_text: windowText().text
+      } : null,
+      scenarios: state.conditional ? state.scenarios.map((s, i) => ({
+        branch: i === 0 ? "if_true" : "if_false",
+        picks: s.picks
+      })) : []
+    };
+  }
+
+  let statusTimer = null;
+  function flash(msg, isErr) {
+    const el = $("status");
+    el.textContent = msg;
+    el.className = "status " + (isErr ? "err" : "ok");
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { el.textContent = ""; el.className = "status"; }, 7000);
+  }
+
+  /* ---------- ledger rendering ---------- */
+  const EXAMPLE = {
+    example: true, season: SEASON, filed_at: null, conditional: true,
+    side_a: { manager: "Derek Topper", players: [{ name: "Ashton Jeanty", pos: "RB" }], picks: [] },
+    side_b: { manager: "Maggie Mansfield", players: [{ name: "Nico Collins", pos: "WR" }], picks: [] },
+    condition: {
+      text: "If Ashton Jeanty finishes as a top-10 RB",
+      scoring: "ppr", rank_by: "total", from_week: 8, to_week: 15,
+      window_text: "Weeks 8–15 — from week 8 to the end of the regular season"
+    },
+    scenarios: [
+      { branch: "if_true", picks: [{ year: 2027, round: 1, from: "Topper", to: "Mansfield" }] },
+      { branch: "if_false", picks: [{ year: 2027, round: 2, from: "Topper", to: "Mansfield" }] }
+    ]
+  };
+
+  function sideText(s) {
+    const bits = (s.players || []).map(p => `${p.name} (${p.pos})`)
+      .concat((s.picks || []).map(p => `${p.year} ${ord(p.round)}`));
+    return bits.length ? bits.join(", ") : "nothing";
+  }
+  const nameOf = v => (byId(v) ? shortName(v) : v);
+
+  function entryNode(r) {
+    const div = document.createElement("div");
+    div.className = "entry" + (r.example ? " example" : "");
+    const top = document.createElement("div");
+    top.className = "entry-top";
+
+    const badge = document.createElement("span");
+    if (r.example) { badge.className = "badge ex"; badge.textContent = "Example"; }
+    else if (r.status === "resolved") { badge.className = "badge clean"; badge.textContent = "Resolved"; }
+    else if (r.conditional) { badge.className = "badge cond"; badge.textContent = "Conditional"; }
+    else { badge.className = "badge clean"; badge.textContent = "Settled"; }
+    top.appendChild(badge);
+
+    const when = document.createElement("span");
+    when.className = "entry-when";
+    when.textContent = r.filed_at
+      ? new Date(r.filed_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+      : "not a real trade — this is what an entry looks like";
+    top.appendChild(when);
+    div.appendChild(top);
+
+    [[r.side_a, r.side_b], [r.side_b, r.side_a]].forEach(([from, to]) => {
+      const l = document.createElement("div");
+      l.className = "entry-line";
+      const who = document.createElement("strong");
+      who.textContent = (from.manager || "").split(" ").pop();
+      l.appendChild(who);
+      l.appendChild(document.createTextNode(` sends ${sideText(from)} to ${(to.manager || "").split(" ").pop()}`));
+      div.appendChild(l);
+    });
+
+    if (r.conditional && r.condition) {
+      const c = document.createElement("div");
+      c.className = "entry-cond";
+      const q = document.createElement("span");
+      q.className = "q"; q.textContent = "Condition — ";
+      c.append(q, document.createTextNode(r.condition.text));
+      (r.scenarios || []).forEach(s => {
+        const line = document.createElement("div");
+        line.style.marginTop = "4px";
+        const picks = (s.picks || []).length
+          ? s.picks.map(p => `${p.year} ${ord(p.round)} ${nameOf(p.from)} → ${nameOf(p.to)}`).join("; ")
+          : "no picks move";
+        const head = s.branch === "if_true" ? "If met" : "If not";
+        line.textContent = `${head}: ${picks}` + (s.label ? `  (${s.label})` : "");
+        c.appendChild(line);
+      });
+      const terms = document.createElement("div");
+      terms.className = "entry-terms";
+      terms.textContent = [
+        r.condition.window_text || `Weeks ${r.condition.from_week}–${r.condition.to_week}`,
+        RANK_TEXT[r.condition.rank_by] || r.condition.rank_by,
+        r.condition.scoring === "ppr" ? SCORING_TEXT : r.condition.scoring
+      ].join("  ·  ");
+      c.appendChild(terms);
+      div.appendChild(c);
+    }
+    return div;
+  }
+
+  function renderLedger(rows) {
+    const el = $("ledger");
+    el.innerHTML = "";
+    if (!rows.length) {
+      $("ledgerCount").textContent = "No trades filed yet";
+      el.appendChild(entryNode(EXAMPLE));
+      return;
+    }
+    $("ledgerCount").textContent = rows.length + (rows.length === 1 ? " trade filed" : " trades filed");
+    rows.forEach(r => el.appendChild(entryNode(r)));
+  }
+
+  /* ---------- endpoint ---------- */
+  async function api(path, options) {
+    const res = await fetch(ENDPOINT + path, {
+      ...options,
+      headers: { "Content-Type": "application/json", "X-League-Password": password, ...(options || {}).headers }
+    });
+    let body = null;
+    try { body = await res.json(); } catch (e) { /* non-JSON error page */ }
+    if (!res.ok) {
+      const err = new Error((body && body.error) || `Request failed (${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function loadLedger() {
+    try {
+      const data = await api(`/trades?season=${SEASON}&limit=200`, { method: "GET" });
+      renderLedger(data.trades || []);
+    } catch (e) {
+      renderLedger([]);
+      showNotice("Couldn't load the filed trades — " + e.message);
+    }
+  }
+
+  function showNotice(text) {
+    $("notice").hidden = false;
+    $("notice").textContent = text;
+  }
+
+  /* ---------- copy fallback ---------- */
+  $("copyBtn").addEventListener("click", async () => {
+    const err = validate();
+    if (err) { flash(err, true); return; }
+    const payload = buildPreview().text + "\n\n--- machine-readable ---\n" + JSON.stringify(record(), null, 2);
+    try {
+      await navigator.clipboard.writeText(payload);
+      flash("Copied. Send it to Jack if it didn't file.", false);
+    } catch (e) {
+      flash("Couldn't reach the clipboard — select the preview text and copy it by hand.", true);
+    }
+  });
+
+  /* ---------- submit ---------- */
+  $("submitBtn").addEventListener("click", async () => {
+    const err = validate();
+    if (err) { flash(err, true); return; }
+    if (!ENDPOINT) { flash("The ledger isn't wired up yet — hit Copy record and send it to Jack.", true); return; }
+    $("submitBtn").disabled = true;
+    flash("Filing…", false);
+    try {
+      await api("/trade", { method: "POST", body: JSON.stringify(record()) });
+      flash("Filed. It's on the record below.", false);
+      state.a.players = []; state.a.picks = [];
+      state.b.players = []; state.b.picks = [];
+      state.condition = { text: "", subject: null, when: state.condition.when,
+                          rank: state.condition.rank, from_week: 1, to_week: REG_WEEKS };
+      state.scenarios = [ { picks: [] }, { picks: [] } ];
+      state.conditional = false;
+      $("condOn").checked = false; $("condBody").hidden = true;
+      $("condText").value = "";
+      $("wkFrom").value = "1"; $("wkTo").value = String(REG_WEEKS);
+      await loadLedger();
+    } catch (e) {
+      flash(e.message + " Hit Copy record and send it to Jack.", true);
+    } finally {
+      redraw();
+    }
+  });
+
+  /* ---------- boot ---------- */
+  function start() {
+    $("gate").hidden = true;
+    $("app").hidden = false;
+    redraw();
+    if (ENDPOINT) loadLedger(); else renderLedger([]);
+  }
+
+  if (!ENDPOINT) {
+    // No backend wired up yet: skip the gate, run in copy-only mode.
+    start();
+    showNotice("The ledger isn't wired up yet, so “File this trade” won't save. " +
+               "Fill it in and hit Copy record, then send it to Jack.");
+  } else {
+    $("gate").hidden = false;
+    const saved = sessionStorage.getItem("llf_pw");
+    const tryPassword = async pw => {
+      password = pw;
+      $("gateStatus").textContent = "Checking…";
+      $("gateStatus").className = "status";
+      try {
+        const data = await api(`/trades?season=${SEASON}&limit=200`, { method: "GET" });
+        try { sessionStorage.setItem("llf_pw", pw); } catch (e) { /* private window */ }
+        start();
+        renderLedger(data.trades || []);
+      } catch (e) {
+        password = "";
+        try { sessionStorage.removeItem("llf_pw"); } catch (err) {}
+        $("gateStatus").textContent = e.status === 401 ? "That's not the league password." : e.message;
+        $("gateStatus").className = "status err";
+        $("gatePw").focus();
+      }
+    };
+    $("gateBtn").addEventListener("click", () => tryPassword($("gatePw").value));
+    $("gatePw").addEventListener("keydown", e => { if (e.key === "Enter") tryPassword($("gatePw").value); });
+    if (saved) tryPassword(saved); else $("gatePw").focus();
+  }
+})();
+</script>

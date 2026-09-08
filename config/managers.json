@@ -1,0 +1,72 @@
+[
+  {
+    "id": "team8",
+    "name": "Daniel Gossels",
+    "team_id": 8,
+    "team_name": "Buncha White Guys",
+    "claimed": true
+  },
+  {
+    "id": "team9",
+    "name": "Derek Topper",
+    "team_id": 9,
+    "team_name": "Derek's Daring Team",
+    "claimed": true
+  },
+  {
+    "id": "team1",
+    "name": "Jack Gilmore",
+    "team_id": 1,
+    "team_name": "The People's Champ",
+    "claimed": true
+  },
+  {
+    "id": "team3",
+    "name": "Jackson Slaughter",
+    "team_id": 3,
+    "team_name": "What I Wouldnt do for a Dart",
+    "claimed": true
+  },
+  {
+    "id": "team6",
+    "name": "Kilian Nelson",
+    "team_id": 6,
+    "team_name": "Taylor Acorn's Side Piece",
+    "claimed": true
+  },
+  {
+    "id": "team5",
+    "name": "Maggie Mansfield",
+    "team_id": 5,
+    "team_name": "New Romeantics",
+    "claimed": true
+  },
+  {
+    "id": "team2",
+    "name": "Nicholas Bergeron",
+    "team_id": 2,
+    "team_name": "Nicholas's Nifty Team",
+    "claimed": true
+  },
+  {
+    "id": "team10",
+    "name": "Peter Martino",
+    "team_id": 10,
+    "team_name": "55 Passes 55 TDs 55 Years",
+    "claimed": true
+  },
+  {
+    "id": "team4",
+    "name": "Veronica Agne",
+    "team_id": 4,
+    "team_name": "You Belong with TEE",
+    "claimed": true
+  },
+  {
+    "id": "team7",
+    "name": "Zoe Bosenberg",
+    "team_id": 7,
+    "team_name": "Zoe's Honorable Team",
+    "claimed": true
+  }
+]

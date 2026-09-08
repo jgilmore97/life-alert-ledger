@@ -1,0 +1,11 @@
+{
+  "endpoint": "https://life-alert-ledger.laf-conditional.workers.dev",
+  "_endpoint_help": "After deploying the worker, put its URL here (no trailing slash), e.g. https://life-alert-ledger.YOUR-SUBDOMAIN.workers.dev \u2014 then re-run scripts/build_form.py",
+  "season": 2026,
+  "regular_season_weeks": 15,
+  "max_week": 17,
+  "teams": 10,
+  "playoff_teams": 4,
+  "rookie_draft_rounds": 4,
+  "pick_years_out": 3
+}
