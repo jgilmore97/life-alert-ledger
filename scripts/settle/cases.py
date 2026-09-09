@@ -1,14 +1,13 @@
 """
 Test conditions, written the way managers actually write them.
 
-The easy case ("top-10 RB") is not what this is for. These are the phrasings
-that quietly settle wrong: tier language that looks like a rank, a stat that
-spans two stats, an average where the form says total, labels written
-backwards, and conditions that no box score can settle at all.
+The easy case ("top-10 RB") is not what this is for. These are the phrasings that
+quietly settle wrong: tier language that looks like a rank, a stat that spans two
+stats, an average where the form says total, labels written backwards, and conditions
+no box score can settle.
 
-`expect` holds only what must be true of the INTERPRETATION. Whether the
-condition actually hit is the evaluator's business, and it is checked against
-live numbers rather than anything asserted here.
+`expect` holds only what must be true of the INTERPRETATION. Whether the condition
+actually hit is the evaluator's business, checked against live numbers.
 """
 
 SUBJECTS = {
@@ -26,10 +25,9 @@ def trade(text, *, subject=None, rank_by="total", from_week=1, to_week=15,
           a="Derek Topper", b="Maggie Mansfield", player=("Tony Pollard", "RB")):
     """A filed trade record, shaped exactly as the form submits it.
 
-    `if_true`/`if_false` are the hand-written branch labels the form used to ask
-    for. It no longer does — the branches are structural now — so leaving them
-    unset is what a record filed today looks like. Passing them reproduces a
-    legacy record, which the agent still has to read correctly."""
+    `if_true`/`if_false` are the hand-written branch labels the form used to ask for.
+    It no longer does, so leaving them unset is what a record filed today looks like;
+    passing them reproduces a legacy record the agent still has to read correctly."""
     return {
         "season": 2025,
         "filed_by": a,

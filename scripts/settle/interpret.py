@@ -1,20 +1,15 @@
 """
 The model half: league-speak in, a checkable Predicate out.
 
-One call, structured output, no tools and no agent loop. Interpreting a
-sentence is not an agentic task — it is an extraction task, and every extra
-degree of freedom here is a degree of freedom to get a draft pick wrong.
+One call, structured output, no tools and no agent loop — interpreting a sentence is an
+extraction task, not an agentic one.
 
-Two things are deliberately withheld from the model:
+Two things are withheld from the model: the week window and scoring basis (the form
+captured them as structured fields, so the model reads but cannot change them), and the
+numbers (it never sees a stat line, so it can't be talked into a verdict by one).
 
-  * the week window and the scoring basis, which the form already captured as
-    structured fields. The model reads them as context but cannot change them.
-  * the numbers. It never sees a stat line, so it cannot be talked into a
-    verdict by one.
-
-Its one real judgement call is `settleable`. "If Pollard balls out" is a
-perfectly good handshake and a terrible settlement input; saying so and handing
-it to the commissioner is the correct answer, not a failure.
+Its one real judgement call is `settleable`. "If Pollard balls out" is a fine handshake
+and a terrible settlement input; handing it to the commissioner is the right answer.
 """
 from __future__ import annotations
 
@@ -32,8 +27,8 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def league_shape() -> dict:
-    """Team count and bracket size, which "makes the playoffs" needs to become a
-    number. Read from config/site.json so the form and the agent can't drift."""
+    """Team count and bracket size, which "makes the playoffs" needs to become a number.
+    Read from config/site.json so the form and the agent can't drift."""
     cfg = json.loads((ROOT / "config" / "site.json").read_text())
     return {"teams": cfg.get("teams", 10), "playoff_teams": cfg.get("playoff_teams", 4)}
 
@@ -187,11 +182,9 @@ def interpret(record: dict, client: anthropic.Anthropic | None = None,
 
 def explain(record: dict, interp: Interpretation, verdict, *,
             client: anthropic.Anthropic | None = None, model: str = MODEL) -> str:
-    """Turn a settled verdict into the note that goes out to the league.
-
-    Called only AFTER the arithmetic is done, and it is handed the arithmetic —
-    so it is writing up a result, never deciding one.
-    """
+    """Turn a settled verdict into the note that goes out to the league. Called only
+    after the arithmetic is done and handed that arithmetic, so it writes up a result
+    rather than deciding one."""
     client = client or anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     cond = record.get("condition") or {}
     branch = "if_true" if verdict.met else "if_false"

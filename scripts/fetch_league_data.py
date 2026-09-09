@@ -1,11 +1,9 @@
 """
-Pull canonical league identities from ESPN for the dynasty league.
+Pull canonical league identities from ESPN. Read-only; nothing here writes back.
 
 Writes two files consumed by the trade form:
-  config/managers.json  — canonical manager list (name, team id, claimed)
+  config/managers.json  — manager list (name, team id, claimed)
   config/players.json   — NFL player universe (id, name, position, pro team)
-
-ESPN is a read-only oracle here. Nothing in this project writes back to ESPN.
 
 Usage:  python scripts/fetch_league_data.py
 """
@@ -13,13 +11,17 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 from espn_api.football import League
-from espn_api.football.constant import POSITION_MAP, PRO_TEAM_MAP
+from espn_api.football.constant import PRO_TEAM_MAP
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from settle.stats import position_of  # noqa: E402
+
 # Credentials are shared with the FantasyAgent project (same ESPN account).
 load_dotenv(ROOT.parent / "FantasyWork" / "FantasyAgent" / ".env")
 load_dotenv(ROOT / ".env")  # local overrides win if present
@@ -41,14 +43,12 @@ def _league() -> League:
 
 
 def fetch_managers(lg: League) -> list[dict]:
-    """One record per team. Unclaimed teams are kept so the roster is complete.
+    """One record per team; unclaimed teams are kept so the roster is complete.
 
-    ESPN's owner id is deliberately NOT stored. It is the same value as that
-    manager's SWID cookie — a permanent per-account identifier that can't be
-    rotated the way a password can — and this repo has to be public for GitHub
-    Pages. Nothing here needs it: `team_id` is the stable key, and `claimed` is
-    the only thing the owner id was ever consulted for, so it's resolved to a
-    boolean at fetch time and the id is dropped.
+    ESPN's owner id is deliberately NOT stored. It is the manager's SWID cookie value —
+    a permanent per-account identifier that can't be rotated — and this repo has to be
+    public for Pages. `team_id` is the stable key, and `claimed` is the only thing the
+    owner id was ever consulted for, so it's resolved to a boolean here and dropped.
     """
     managers = []
     for team in lg.teams:
@@ -72,23 +72,9 @@ def fetch_managers(lg: League) -> list[dict]:
     return sorted(managers, key=lambda m: (not m["claimed"], m["name"]))
 
 
-def _position_from_slots(player: dict) -> str:
-    """Derive a player's true position the way espn_api does — the first
-    non-composite eligible slot. `defaultPositionId` indexes a DIFFERENT
-    table than POSITION_MAP and silently mislabels QB/WR/TE/K."""
-    # Team defenses are eligible only at composite/bench slots, so check them first.
-    if player.get("defaultPositionId") == 16:
-        return "D/ST"
-    for slot in player.get("eligibleSlots", []):
-        label = POSITION_MAP.get(slot, "")
-        if slot != 25 and label and "/" not in label:
-            return label
-    return ""
-
-
 def fetch_players(lg: League, limit: int = 3000) -> list[dict]:
-    """The full player universe, ranked by ownership so autocomplete surfaces
-    relevant names first. No status filter — rostered players are included."""
+    """The full player universe, ranked by ownership so autocomplete surfaces relevant
+    names first. No status filter — rostered players are included."""
     filters = {
         "players": {
             "limit": limit,
@@ -103,7 +89,7 @@ def fetch_players(lg: League, limit: int = 3000) -> list[dict]:
     players = []
     for entry in data.get("players", []):
         p = entry.get("player") or {}
-        pos = _position_from_slots(p)
+        pos = position_of(p)
         if pos not in TRADEABLE_POSITIONS:
             continue
         players.append(

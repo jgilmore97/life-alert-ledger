@@ -1,13 +1,9 @@
 name: Form build
 
-# docs/index.html is generated but committed, because Pages serves it straight
-# from main/docs. So a template edit without a rebuild silently ships a stale
-# form to the league. This turns that into a failed check instead.
-#
-# It VERIFIES rather than auto-commits, deliberately: Pages deploys whatever
-# lands on main, and CI pushing to that branch would change the live page with
-# nobody having looked at it. Needs no secrets — build_form.py is stdlib-only
-# and reads nothing but committed config.
+# docs/index.html is generated but committed, because Pages serves it straight from
+# main/docs — so a template edit without a rebuild ships a stale form to the league.
+# This verifies rather than auto-commits: CI pushing to main would change the live
+# page with nobody having looked at it.
 
 on:
   push:
@@ -33,19 +29,18 @@ jobs:
 
       - name: Committed build must match the template
         run: |
-          if git diff --quiet -- form/trade_form.html docs/index.html; then
+          if git diff --quiet -- docs/index.html; then
             echo "Built output matches the template."
           else
-            git diff --stat -- form/trade_form.html docs/index.html
-            echo "::error file=form/trade_form.template.html::The committed form is stale. Run 'python3 scripts/build_form.py' and commit form/trade_form.html and docs/index.html."
+            git diff --stat -- docs/index.html
+            echo "::error file=form/trade_form.template.html::The committed form is stale. Run 'python3 scripts/build_form.py' and commit docs/index.html."
             exit 1
           fi
 
       - name: No ESPN owner ids anywhere in the repo
         run: |
-          # espn_owner_id is the manager's SWID cookie value, and this repo is
-          # public so Pages can serve it. fetch_league_data.py stops writing the
-          # field; this stops it coming back by any other route.
+          # espn_owner_id is a manager's SWID cookie, and this repo is public so
+          # Pages can serve it. This stops one coming back by any route.
           if git grep -InE '\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}' -- .; then
             echo "::error::An ESPN owner GUID (a manager's SWID) is committed. Remove it before pushing — see fetch_league_data.py."
             exit 1

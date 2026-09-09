@@ -1,16 +1,12 @@
 """
-Does the settlement agent work?
+Does the settlement agent work? Two questions, tested separately because they fail for
+different reasons:
 
-Two questions, tested separately, because they fail for different reasons:
-
-  INTERPRETATION — does Claude turn league-speak into the right clause?
-      Asserted against scripts/settle/cases.py. This is the model under test.
-
-  EVALUATION — does the deterministic half compute the right numbers?
-      Checked against a completed season's real ESPN data, and against itself:
-      a "top-1 RB" and a "top-100 RB" clause on the same player must both agree
-      with the rank the leaderboard actually gives him. A rank that satisfies
-      one and not the other in the wrong direction is an evaluator bug.
+  INTERPRETATION  does Claude turn league-speak into the right clause? Asserted against
+                  cases.py. This is the model under test.
+  EVALUATION      does the deterministic half compute the right numbers? Checked against
+                  a completed season and against itself — a player's rank on the
+                  leaderboard must agree with what a top-N clause settles, at every N.
 
 Usage:
     PY=../FantasyWork/FantasyAgent/venv/bin/python
@@ -19,10 +15,9 @@ Usage:
     $PY -m scripts.settle.run_tests --case "RB2"    # one case
     $PY -m scripts.settle.run_tests --model sonnet  # cheaper while iterating
 
-The default is the model the agent actually ships with, so a bare run tests what
-will settle real trades. `--model sonnet` is for iterating on cases and prompt
-wording without paying Opus rates; a green suite on Sonnet is encouraging but is
-not the result that matters.
+The default is the model the agent ships with. `--model sonnet` is for iterating on
+cases and prompt wording; a green suite on Sonnet is encouraging but not the result
+that matters.
 """
 from __future__ import annotations
 
@@ -43,61 +38,55 @@ from scripts.settle.interpret import MODEL, interpret       # noqa: E402
 from scripts.settle.predicates import Interpretation, Term, evaluate   # noqa: E402
 from scripts.settle.stats import SeasonStats                # noqa: E402
 
-# A completed season to test against. The dynasty league didn't exist in 2025,
-# so the numbers come from the sibling league — same ESPN mechanics, and the
-# point here is the pipeline, not this league's own history.
+# A completed season to test against. The dynasty league didn't exist in 2025, so the
+# numbers come from the sibling league — both are full PPR, and the point is the
+# pipeline, not this league's own history.
 TEST_LEAGUE = int(os.getenv("LEAGUE_ID", "0"))
 TEST_SEASON = 2025
 
 GREEN, RED, YELLOW, DIM, OFF = "\033[32m", "\033[31m", "\033[33m", "\033[2m", "\033[0m"
 
 
+# expect key -> Term attribute, compared for equality against the first term
+TERM_FIELDS = ("kind", "operator", "threshold", "stat", "measure", "basis")
+# expect key -> Term attribute, compared case-insensitively as a substring
+CONTAINS = {"manager_contains": "manager_name", "player_contains": "player_name"}
+
+
 def check(interp, expect: dict) -> list[str]:
     """Everything the interpretation got wrong, in plain terms."""
     bad = []
-    terms = interp.terms
-    first = terms[0] if terms else None
-
     if "settleable" in expect and interp.settleable != expect["settleable"]:
         bad.append(f"settleable: expected {expect['settleable']}, got {interp.settleable}")
     if not interp.settleable:
         return bad                       # nothing else applies
 
-    if "kind" in expect and (not first or first.kind != expect["kind"]):
-        bad.append(f"kind: expected {expect['kind']}, got {first.kind if first else None}")
-    if "operator" in expect and (not first or first.operator != expect["operator"]):
-        bad.append(f"operator: expected {expect['operator']}, got {first.operator if first else None}")
-    if "threshold" in expect and (not first or first.threshold != expect["threshold"]):
-        bad.append(f"threshold: expected {expect['threshold']}, got {first.threshold if first else None}")
-    if "stat" in expect and (not first or first.stat != expect["stat"]):
-        bad.append(f"stat: expected {expect['stat']}, got {first.stat if first else None}")
-    if "position" in expect and (not first or (first.position or "").upper()
-                                 != expect["position"].upper()):
-        bad.append(f"position: expected {expect['position']}, got {first.position if first else None}")
-    if "measure" in expect and (not first or first.measure != expect["measure"]):
-        bad.append(f"measure: expected {expect['measure']}, got {first.measure if first else None}")
-    if "manager_contains" in expect and (not first or expect["manager_contains"].lower()
-                                         not in (first.manager_name or "").lower()):
-        bad.append(f"manager: expected to contain {expect['manager_contains']!r}, "
-                   f"got {first.manager_name if first else None!r}")
-    if "basis" in expect and (not first or first.basis != expect["basis"]):
-        bad.append(f"basis: expected {expect['basis']}, got {first.basis if first else None}")
+    first = interp.terms[0] if interp.terms else None
+
+    def got(attr):
+        return getattr(first, attr, None)
+
+    for key in TERM_FIELDS:
+        if key in expect and got(key) != expect[key]:
+            bad.append(f"{key}: expected {expect[key]}, got {got(key)}")
+    if "position" in expect and (got("position") or "").upper() != expect["position"].upper():
+        bad.append(f"position: expected {expect['position']}, got {got('position')}")
+    for key, attr in CONTAINS.items():
+        if key in expect and expect[key].lower() not in (got(attr) or "").lower():
+            bad.append(f"{attr}: expected to contain {expect[key]!r}, got {got(attr)!r}")
+
     if "combine" in expect and interp.combine != expect["combine"]:
         bad.append(f"combine: expected {expect['combine']}, got {interp.combine}")
-    if "n_terms" in expect and len(terms) != expect["n_terms"]:
-        bad.append(f"terms: expected {expect['n_terms']}, got {len(terms)}")
+    if "n_terms" in expect and len(interp.terms) != expect["n_terms"]:
+        bad.append(f"terms: expected {expect['n_terms']}, got {len(interp.terms)}")
     if "branch_ok" in expect and interp.branch_ok != expect["branch_ok"]:
         bad.append(f"branch_ok: expected {expect['branch_ok']}, got {interp.branch_ok}")
-    if "player_contains" in expect and (not first or expect["player_contains"].lower()
-                                        not in first.player_name.lower()):
-        bad.append(f"player: expected to contain {expect['player_contains']!r}, "
-                   f"got {first.player_name if first else None!r}")
-    if "has_notes" in expect and expect["has_notes"] and not interp.notes:
+    if expect.get("has_notes") and not interp.notes:
         bad.append("expected a note flagging the ambiguity, got none")
-    if "not_single_stat" in expect:
-        # The trap: quietly settling a two-stat condition on one stat.
-        if len(terms) == 1 and terms[0].stat == expect["not_single_stat"]:
-            bad.append(f"settled a multi-stat condition on {expect['not_single_stat']} alone")
+    # The trap: quietly settling a two-stat condition on one stat.
+    if "not_single_stat" in expect and len(interp.terms) == 1 \
+            and got("stat") == expect["not_single_stat"]:
+        bad.append(f"settled a multi-stat condition on {expect['not_single_stat']} alone")
     return bad
 
 
@@ -117,9 +106,9 @@ def show_evaluation(record, interp, stats) -> None:
 
 def rank_consistency(stats, player_name: str, position: str,
                      from_week: int, to_week: int) -> str:
-    """An evaluator self-check that needs no memory of how the season went:
-    the rank the leaderboard gives a player must be the rank a top-N clause
-    settles on, for every N. Catches off-by-ones and pool-filtering bugs."""
+    """The rank the leaderboard gives a player must be the rank a top-N clause settles
+    on, for every N. Catches off-by-ones and pool-filtering bugs, with no memory of how
+    the season went."""
     stats.load(range(from_week, to_week + 1))
     pid = stats.find_player(player_name)
     board = stats.leaderboard(position, from_week, to_week, basis="total")
@@ -142,17 +131,15 @@ def rank_consistency(stats, player_name: str, position: str,
 
 
 def _wrap(term):
-    """One term, as a settleable Interpretation — for checking the evaluator
-    without going through the model."""
+    """One term, as a settleable Interpretation — checks the evaluator without the model."""
     return Interpretation(understanding="", settleable=True, unsettleable_reason=None,
                           combine="single", terms=[term], branch_ok=True,
                           confidence="high", notes=[])
 
 
 def placement_consistency(stats, manager: str, measure: str) -> str:
-    """Same idea as rank_consistency, for standings: the finish a manager
-    actually has must agree with what a threshold clause settles, at every
-    threshold. Catches an off-by-one between seed and final rank."""
+    """Same idea as rank_consistency, for standings. Catches an off-by-one between
+    seed and final rank."""
 
     team = stats.find_manager(manager)
     if team is None:

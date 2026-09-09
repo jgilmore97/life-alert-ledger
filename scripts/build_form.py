@@ -1,10 +1,5 @@
 """
-Inject live league data into the trade form and emit both builds.
-
-  form/trade_form.html   the Artifact body (Claude wraps it in a document)
-  docs/index.html        the standalone page for GitHub Pages
-
-Both are the same markup and behaviour; only the document wrapper differs.
+Inject live league data into the trade form and write docs/index.html.
 
 Usage:  python scripts/build_form.py
 """
@@ -15,9 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# The reset the Artifact host applies for us, restated for the standalone page
-# so the two builds render identically.
-SITE_HEAD = """<!doctype html>
+HEAD = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -32,7 +25,7 @@ SITE_HEAD = """<!doctype html>
 </head>
 <body>
 """
-SITE_FOOT = "\n</body>\n</html>\n"
+FOOT = "\n</body>\n</html>\n"
 
 
 def main() -> None:
@@ -46,13 +39,9 @@ def main() -> None:
     # `owned` only drove the fetch-time sort; the array order already encodes it.
     slim = [{"id": p["id"], "name": p["name"], "pos": p["pos"], "team": p["team"]} for p in players]
 
-    # The page never needs ESPN owner GUIDs, and the Pages repo is public — leave
-    # them in config/managers.json for local tooling, but don't ship them.
-    public_managers = [
-        # Kept as a backstop: fetch_league_data no longer writes owner ids, and
-        # nothing that reaches a public page should ever carry one again.
-        {k: v for k, v in m.items() if k != "espn_owner_id"} for m in managers
-    ]
+    # espn_owner_id is a manager's SWID cookie and this repo is public. fetch_league_data
+    # no longer writes the field; stripping it here is the backstop.
+    public_managers = [{k: v for k, v in m.items() if k != "espn_owner_id"} for m in managers]
 
     html = (ROOT / "form" / "trade_form.template.html").read_text()
     subs = {
@@ -69,22 +58,19 @@ def main() -> None:
             raise SystemExit(f"Template is missing placeholder {token}")
         html = html.replace(token, value)
 
-    artifact = ROOT / "form" / "trade_form.html"
-    artifact.write_text(html)
+    site = ROOT / "docs"
+    site.mkdir(exist_ok=True)
+    page = site / "index.html"
+    page.write_text(HEAD + html + FOOT)
+    (site / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
+    (site / ".nojekyll").write_text("")
 
-    site_dir = ROOT / "docs"
-    site_dir.mkdir(exist_ok=True)
-    (site_dir / "index.html").write_text(SITE_HEAD + html + SITE_FOOT)
-    (site_dir / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
-    (site_dir / ".nojekyll").write_text("")
-
-    endpoint = cfg.get("endpoint")
-    print(f"built form/trade_form.html and docs/index.html ({artifact.stat().st_size / 1024:.0f} KB)")
+    print(f"built docs/index.html ({page.stat().st_size / 1024:.0f} KB)")
     print(f"  managers   : {sum(m['claimed'] for m in managers)} claimed of {len(managers)}")
     print(f"  players    : {len(slim)}")
     print(f"  pick years : {pick_years} x rounds 1-{cfg['rookie_draft_rounds']}")
     print(f"  weeks      : regular season 1-{cfg['regular_season_weeks']}, playoffs to {cfg['max_week']}")
-    print(f"  endpoint   : {endpoint or 'NOT SET — form runs in copy-only mode'}")
+    print(f"  endpoint   : {cfg.get('endpoint') or 'NOT SET — form runs in copy-only mode'}")
 
 
 if __name__ == "__main__":

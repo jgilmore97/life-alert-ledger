@@ -6,7 +6,7 @@ Read the trade ledger from the command line.
     python scripts/ledger.py pending         only conditional trades awaiting settlement
     python scripts/ledger.py raw             the JSON, for piping
 
-Authenticates with the league password from the Keychain (see secrets.py). The
+Authenticates with the league password from the Keychain (see league_secrets.py). The
 password is never printed, logged, or passed on the command line.
 """
 from __future__ import annotations

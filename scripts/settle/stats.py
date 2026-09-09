@@ -1,24 +1,17 @@
 """
-The stats layer: what a player actually did, over an exact window of weeks.
+The stats layer: what a player did over an exact window of weeks, straight from ESPN
+with no model in the loop.
 
-This is the half of settlement that must never guess. It answers three questions
-deterministically, straight from ESPN, with no model in the loop:
+ESPN detail that shapes everything: `kona_player_info` returns weekly stat splits only
+for the scoringPeriodId you ask for, so an N-week window costs N requests. They're
+cached under data/stats_cache/ — settlement gets re-run while people argue, and the
+cache records what the numbers were on settlement day.
 
-    how many fantasy points did this player score in weeks X..Y
-    where did that rank him among everyone at his position
-    what were his raw counting stats (rushing yards, receptions, ...)
-
-ESPN detail that shapes everything here: `kona_player_info` returns weekly stat
-splits only for the scoringPeriodId you ask for. There is no "give me the whole
-season by week" call, so a window of N weeks costs N requests. They're cached to
-disk — settlement is re-run often while arguing, and the cache doubles as the
-audit trail for what the numbers were on settlement day.
-
-Stat entry shape, for the record:
-    statSourceId  0 = actual, 1 = projected      <- we only ever take 0
+Stat entry shape:
+    statSourceId    0 = actual, 1 = projected     <- only 0 is ever read
     statSplitTypeId 1 = single week, 0 = season
-    appliedTotal  fantasy points IN THE LEAGUE'S SCORING (this is why the
-                  request goes through the league endpoint and not a generic one)
+    appliedTotal    fantasy points in the LEAGUE's scoring, which is why the request
+                    goes through the league endpoint rather than a generic one
 """
 from __future__ import annotations
 
@@ -33,16 +26,12 @@ from espn_api.football.constant import POSITION_MAP, PLAYER_STATS_MAP, PRO_TEAM_
 ROOT = Path(__file__).resolve().parent.parent.parent
 CACHE = ROOT / "data" / "stats_cache"
 
-# How deep into the ownership-ranked player pool to look. A player who could
-# plausibly be the subject of a trade condition is never outside the top ~1500
-# by percent owned; the pool size is recorded in every result so a settlement
-# can be challenged on this if it ever matters.
+# How deep into the ownership-ranked player pool to look. A plausible trade subject is
+# never outside the top ~1500 by percent owned.
 POOL_LIMIT = 1500
 
-# A "top 20 flex" finish ranks across the combined pool, exactly the way a
-# single-position finish ranks across one. These are ESPN's own composite
-# lineup slots — this league starts two RB/WR/TE flexes and one superflex (OP),
-# so both are live here. Anything not listed is a single position.
+# ESPN's own composite lineup slots. A "top 20 flex" finish is the same ranking over
+# more positions. Anything not listed here is a single position.
 POSITION_POOLS = {
     "FLEX": ("RB", "WR", "TE"),
     "SUPERFLEX": ("QB", "RB", "WR", "TE"),
@@ -54,11 +43,9 @@ def pool_positions(name: str) -> tuple[str, ...]:
     """The positions a pool name covers. A plain position covers itself."""
     return POSITION_POOLS.get((name or "").upper(), (name,))
 
-# Conditions are routinely written against totals ESPN doesn't store as a single
-# stat. "1,500 yards from scrimmage" and "10 total TDs" are ordinary league-speak,
-# and splitting them into per-stat clauses is not equivalent — 1,100 rushing plus
-# 450 receiving makes 1,550 scrimmage yards while failing any fixed split. So they
-# get derived once, here, and become first-class stats everywhere downstream.
+# Totals ESPN doesn't store as one stat. Splitting them into per-stat clauses isn't
+# equivalent — 1,100 rushing plus 450 receiving makes 1,550 scrimmage yards while
+# failing any fixed split — so they're derived once here and are first-class downstream.
 DERIVED_STATS = {
     "scrimmageYards": ("rushingYards", "receivingYards"),
     "totalTouchdowns": ("rushingTouchdowns", "receivingTouchdowns", "passingTouchdowns"),
@@ -80,8 +67,8 @@ def position_of(player: dict) -> str:
 
     `defaultPositionId` indexes a DIFFERENT table than POSITION_MAP and silently
     mislabels QB/WR/TE/K, so it is only trustworthy for team defenses.
-    (Same derivation as scripts/fetch_league_data.py — kept in sync by hand.)
     """
+    # Team defenses are eligible only at composite/bench slots, so check them first.
     if player.get("defaultPositionId") == 16:
         return "D/ST"
     for slot in player.get("eligibleSlots", []):
@@ -93,16 +80,10 @@ def position_of(player: dict) -> str:
 
 @dataclass
 class TeamStanding:
-    """Where a manager's team finished. Two different numbers, and conditions
-    mean different ones by them:
-
-      regular_season_rank  the seed after the last regular-season week — this is
-                           what "made the playoffs" turns on
-      final_rank           where they ended up once the bracket was played —
-                           this is what "won it all" turns on
-
-    They diverge exactly where it matters: the 4-seed who wins the title has
-    regular_season_rank 4 and final_rank 1."""
+    """Where a manager's team finished. The two ranks are different numbers and
+    conditions mean different ones by them: regular_season_rank is the seed going into
+    the bracket ("made the playoffs"), final_rank is where they came out of it ("won it
+    all"). The 4-seed who wins the title is regular_season_rank 4 and final_rank 1."""
     team_id: int
     manager: str
     team_name: str
@@ -213,8 +194,8 @@ class SeasonStats:
         return self._playoff_teams
 
     def find_manager(self, name: str) -> TeamStanding | None:
-        """Resolve however the condition wrote them — "Derek Topper", "Topper",
-        "derek". Ambiguity returns None rather than picking, same as players."""
+        """Resolve however the condition wrote them — "Derek Topper", "Topper", "derek".
+        Ambiguity returns None rather than picking, same as players."""
         self._load_standings()
         target = name.strip().lower()
         rows = list(self._standings.values())
@@ -308,11 +289,9 @@ class SeasonStats:
 
     def leaderboard(self, position: str, from_week: int, to_week: int,
                     basis: str = "total", min_games: int = 1) -> list[Window]:
-        """Every player in `position` with at least `min_games` games in the
-        window, best first. This is the pool a "top-N" condition ranks against.
-
-        `position` is a single position ("RB") or a composite pool ("FLEX"),
-        which is nothing more special than the same ranking over more positions."""
+        """Every player in `position` with at least `min_games` games in the window,
+        best first — the pool a "top-N" condition ranks against. `position` is a single
+        position ("RB") or a composite pool ("FLEX")."""
         self.load(range(from_week, to_week + 1))
         wanted = set(pool_positions(position))
         ids = {int(pid) for week in range(from_week, to_week + 1)
@@ -322,9 +301,8 @@ class SeasonStats:
         return sorted(rows, key=lambda w: -w.value(basis))
 
     def find_player(self, name: str) -> int | None:
-        """Resolve a name to a player id from the loaded pool. Exact match first,
-        then a unique case-insensitive substring — ambiguity returns None rather
-        than picking, because picking wrong moves a draft pick."""
+        """Resolve a name to a player id from the loaded pool. Exact match first, then a
+        unique case-insensitive substring; ambiguity returns None rather than picking."""
         target = name.strip().lower()
         exact = [pid for pid, r in self._index.items() if (r["name"] or "").lower() == target]
         if len(exact) == 1:

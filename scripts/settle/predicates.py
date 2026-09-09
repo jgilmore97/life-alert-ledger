@@ -1,17 +1,12 @@
 """
 What a condition means, and how it gets checked.
 
-The split this whole design rests on: **the model interprets, code decides.**
-Claude turns "if Pollard is a top-10 RB" into a Predicate; the evaluator below
-runs that Predicate against ESPN's numbers and returns a verdict with its
-arithmetic attached. No model ever sees a stat line and announces a winner.
+The model interprets, code decides: Claude turns "if Pollard is a top-10 RB" into a
+Predicate, and the evaluator below runs it against ESPN's numbers and returns a verdict
+with the arithmetic attached. No model ever sees a stat line and announces a winner.
 
-That matters because the output of this pipeline moves a dynasty first-rounder.
-When Topper says "no way he was RB10", the answer has to be a table he can read,
-reproducible in December and again in March, not a paragraph a model wrote once.
-
-The week window and scoring are NOT the model's to choose — the form already
-captured them as structured fields. The model only interprets "what counts".
+The week window and scoring are not the model's to choose — the form captured them as
+structured fields. The model only interprets "what counts".
 """
 from __future__ import annotations
 
@@ -267,9 +262,6 @@ def _evaluate_term(term: Term, stats: SeasonStats, from_week: int, to_week: int)
                     f"{from_week}–{to_week} — needed {OP_TEXT[term.operator]} {term.threshold:g}."),
         )
 
-    if term.kind == "manager_placement":
-        raise Unsettleable("manager_placement is handled before the player lookup.")
-
     if term.kind == "games_played":
         return TermResult(
             term=term, met=compare(win.games, term.operator, term.threshold),
@@ -289,9 +281,8 @@ PLACEMENT_TEXT = {
 
 
 def _evaluate_placement(term: Term, stats: SeasonStats) -> TermResult:
-    """How a manager's team finished. Deliberately window-free: a season's
-    standings are a season's standings, and the trade's week range — which
-    exists to scope a player's production — has no bearing on them."""
+    """How a manager's team finished. Window-free: the trade's week range scopes a
+    player's production and has no bearing on standings."""
     if not term.manager_name:
         raise Unsettleable("A placement condition didn't say which manager.")
     if not term.measure:
