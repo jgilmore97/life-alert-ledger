@@ -15,271 +15,403 @@
 <title>Life Alert Trade Ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ultra&family=Anton&family=Barlow:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap">
 <style>
+  /* ============================================================
+     1976 game program. Harvest gold, turf green, burnt orange,
+     black outlines on everything, greenbar paper for the printouts.
+     ============================================================ */
   :root {
-    --paper:#F2F3F6; --surface:#FFFFFF; --surface-2:#E9EBF0;
-    --ink:#171A20; --muted:#5B6270; --line:#D3D7E0; --line-strong:#AEB5C4;
-    --accent:#1F4E79; --accent-soft:#E3ECF5; --accent-ink:#1F4E79; --on-accent:#FFFFFF;
-    --cond:#9A5B0B; --cond-soft:#F7EAD6;
-    --good:#1B6E43; --good-soft:#DDF0E6;
-    --shadow:0 1px 2px rgba(23,26,32,.06), 0 6px 16px -8px rgba(23,26,32,.18);
-    --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --display:"Bitter", Georgia, "Times New Roman", serif;
+    --paper:#F0E3C0; --surface:#FFF9EC; --surface-2:#E8D6A6;
+    --ink:#17120A; --muted:#6B5F42; --line:#C4AE78;
+    --edge:#17120A; --shade:#17120A;
+    --accent:#0D5B34; --accent-ink:#0D5B34; --accent-soft:#D8E8D6; --on-accent:#FFF9EC;
+    --hot:#C63F0C; --on-hot:#FFF9EC; --gold:#EDA92B; --on-gold:#17120A;
+    --cond:#A8500C; --cond-soft:#F6DFAE;
+    --good:#0D5B34; --good-soft:#CFE3CB;
+    --bar1:#DCEEDA; --bar2:#FFF9EC;
+    --yard:rgba(23,18,10,.075);
+    --hard:5px 5px 0 var(--shade);
+    --hard-sm:3px 3px 0 var(--shade);
+    --body:"Barlow", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono:"Courier Prime", ui-monospace, "Courier New", Courier, monospace;
+    --display:"Ultra", Rockwell, Georgia, serif;
+    --block:"Anton", "Arial Narrow", Impact, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper:#12141A; --surface:#1A1D25; --surface-2:#232733;
-      --ink:#E6E9EF; --muted:#98A0B0; --line:#2E3341; --line-strong:#414861;
-      --accent:#79ADDD; --accent-soft:#1B2C3E; --accent-ink:#9CC6EA; --on-accent:#0E1520;
-      --cond:#D9A055; --cond-soft:#33281A;
-      --good:#63BE8C; --good-soft:#17301F;
-      --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+      --paper:#0E1F17; --surface:#162E1F; --surface-2:#1D3B27;
+      --ink:#F4E8C6; --muted:#9FB098; --line:#2B4E36;
+      --edge:#F4E8C6; --shade:#050D09;
+      --accent:#EDB53F; --accent-ink:#F0C463; --accent-soft:#23402C; --on-accent:#0E1F17;
+      --hot:#E8702F; --on-hot:#12130A; --gold:#EDB53F; --on-gold:#0E1F17;
+      --cond:#E8A23F; --cond-soft:#33281A;
+      --good:#7FC796; --good-soft:#1B3524;
+      --bar1:#17321F; --bar2:#10261A;
+      --yard:rgba(244,232,198,.07);
     }
   }
   :root[data-theme="dark"] {
-    --paper:#12141A; --surface:#1A1D25; --surface-2:#232733;
-    --ink:#E6E9EF; --muted:#98A0B0; --line:#2E3341; --line-strong:#414861;
-    --accent:#79ADDD; --accent-soft:#1B2C3E; --accent-ink:#9CC6EA; --on-accent:#0E1520;
-    --cond:#D9A055; --cond-soft:#33281A;
-    --good:#63BE8C; --good-soft:#17301F;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px -8px rgba(0,0,0,.6);
+    --paper:#0E1F17; --surface:#162E1F; --surface-2:#1D3B27;
+    --ink:#F4E8C6; --muted:#9FB098; --line:#2B4E36;
+    --edge:#F4E8C6; --shade:#050D09;
+    --accent:#EDB53F; --accent-ink:#F0C463; --accent-soft:#23402C; --on-accent:#0E1F17;
+    --hot:#E8702F; --on-hot:#12130A; --gold:#EDB53F; --on-gold:#0E1F17;
+    --cond:#E8A23F; --cond-soft:#33281A;
+    --good:#7FC796; --good-soft:#1B3524;
+    --bar1:#17321F; --bar2:#10261A;
+    --yard:rgba(244,232,198,.07);
   }
 
   * { box-sizing:border-box; }
   body {
-    background:var(--paper); color:var(--ink);
-    font-family:var(--sans); font-size:15px; line-height:1.55;
+    background-color:var(--paper); color:var(--ink);
+    font-family:var(--body); font-size:16px; line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  /* the field: yard lines every 50px, a heavier stripe every fifth */
+  body::before {
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, var(--yard) 0 2px, transparent 2px 250px),
+      repeating-linear-gradient(90deg, var(--yard) 0 1px, transparent 1px 50px);
+  }
+  /* yard numbers down both margins, like the sideline */
+  .fieldnum {
+    position:fixed; top:0; bottom:0; width:64px; z-index:-1; pointer-events:none;
+    display:flex; flex-direction:column; justify-content:space-around; align-items:center;
+    font-family:var(--block); font-size:44px; color:var(--yard); letter-spacing:.06em;
+  }
+  .fieldnum.l { left:0; } .fieldnum.r { right:0; }
+  .fieldnum span { transform:rotate(-90deg); }
+  .fieldnum.r span { transform:rotate(90deg); }
+  @media (max-width:1240px) { .fieldnum { display:none; } }
+
+  .wrap { max-width:900px; margin:0 auto; padding:30px 20px 90px; counter-reset:sec; }
   [hidden] { display:none !important; }
 
-  /* ---------- gate ---------- */
-  .gate { max-width:400px; margin:14vh auto 0; padding:0 20px; }
-  .gate-card {
-    background:var(--surface); border:1px solid var(--line); border-radius:5px;
-    padding:26px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px;
+  /* X and O markers, drawn not typed */
+  .mk::before {
+    content:""; display:inline-block; width:17px; height:17px; flex:none; margin-right:9px;
+    vertical-align:-3px;
   }
-  .gate h1 { font-size:26px; margin:0; }
-  .gate p { margin:0; color:var(--muted); font-size:14px; }
+  .mk-x::before {
+    background:
+      linear-gradient(45deg,  transparent 40%, currentColor 40%, currentColor 60%, transparent 60%),
+      linear-gradient(-45deg, transparent 40%, currentColor 40%, currentColor 60%, transparent 60%);
+  }
+  .mk-o::before { border:4px solid currentColor; border-radius:50%; }
 
-  /* ---------- masthead ---------- */
-  .masthead { border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:8px; }
-  .eyebrow {
-    font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; align-items:baseline;
+  /* ---------- gate ---------- */
+  .gate { max-width:430px; margin:11vh auto 0; padding:0 20px; }
+  .gate-card {
+    background:var(--surface); border:4px solid var(--edge); box-shadow:var(--hard);
+    padding:0 20px 20px; display:flex; flex-direction:column; gap:15px;
   }
-  .eyebrow .dot { color:var(--line-strong); }
+  .gate h1 {
+    font-family:var(--display); font-size:30px; line-height:1.1; margin:0 -20px;
+    padding:16px 20px; text-transform:uppercase; color:var(--on-accent);
+    background:var(--accent); border-bottom:4px solid var(--edge);
+    text-shadow:3px 3px 0 var(--hot);
+  }
+  .gate p { margin:0; color:var(--muted); font-size:15px; }
+  .gate-rule {
+    height:12px; margin:-6px 0 0;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 12px, transparent 12px 24px);
+  }
+
+  /* ---------- masthead: the program cover ---------- */
+  .masthead {
+    background:var(--accent); color:var(--on-accent);
+    border:4px solid var(--edge);
+    box-shadow:inset 0 9px 0 var(--gold), inset 0 -9px 0 var(--gold), 8px 8px 0 var(--shade);
+    padding:26px 24px; margin-bottom:30px;
+  }
   h1 {
-    font-family:var(--display); font-weight:700; font-size:clamp(30px,5vw,42px);
-    line-height:1.08; margin:8px 0 6px; letter-spacing:-.015em; text-wrap:balance;
+    font-family:var(--display); font-weight:400; font-size:clamp(34px,7vw,64px);
+    line-height:.98; margin:0 0 10px; text-transform:uppercase; color:var(--on-accent);
+    text-shadow:4px 4px 0 var(--hot);
   }
-  .standfirst { color:var(--muted); max-width:62ch; margin:0; font-size:14.5px; }
+  .standfirst {
+    color:var(--on-accent); opacity:.92; max-width:46ch; margin:0; font-size:15.5px;
+    text-wrap:balance;
+  }
+  .playbill { display:flex; align-items:center; gap:24px; }
+  .playbill > div { min-width:0; }
+  .playdiagram { width:210px; height:100px; flex:none; color:var(--on-accent); opacity:.9; }
+  .playdiagram line, .playdiagram circle, .playdiagram path { fill:none; stroke:currentColor; stroke-width:3; }
+  .playdiagram .route { stroke-dasharray:6 5; }
+  .playdiagram .head { fill:currentColor; stroke:none; }
+  @media (max-width:760px) { .playdiagram { display:none; } }
 
   .notice {
-    margin-top:16px; padding:10px 13px; border-radius:3px; font-size:13.5px;
-    border-left:3px solid var(--cond); background:var(--cond-soft); color:var(--ink);
+    margin:0 0 26px; padding:13px 16px; font-size:15px; font-weight:500;
+    background:var(--gold); color:var(--on-gold);
+    border:3px solid var(--edge); box-shadow:var(--hard-sm);
   }
 
-  /* ---------- record ---------- */
-  section { margin-top:34px; }
-  .sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:14px; }
+  /* ---------- section bars ---------- */
+  section { margin-top:40px; counter-increment:sec; }
+  .sec-head {
+    display:flex; align-items:center; gap:14px; margin-bottom:18px;
+    background:var(--accent); color:var(--on-accent);
+    border:3px solid var(--edge); box-shadow:var(--hard); padding:7px 13px 6px;
+  }
   .sec-head h2 {
-    font-family:var(--display); font-weight:600; font-size:19px; margin:0; letter-spacing:-.01em;
+    font-family:var(--block); font-weight:400; font-size:clamp(21px,3.4vw,29px); margin:0;
+    letter-spacing:.045em; text-transform:uppercase; color:var(--on-accent);
+    display:flex; align-items:center; gap:12px; line-height:1.1;
   }
-  .sec-head .rule { flex:1; height:1px; background:var(--line); }
-  .sec-head .hint { font-size:12.5px; color:var(--muted); }
+  .sec-head h2::before {
+    content:counter(sec, decimal-leading-zero);
+    font-family:var(--mono); font-weight:700; font-size:15px; letter-spacing:0;
+    color:var(--on-gold); background:var(--gold); border:2px solid var(--edge);
+    padding:2px 6px 1px; line-height:1;
+  }
+  .sec-head .rule {
+    flex:1; height:10px; position:relative; margin-right:12px; opacity:.75;
+    background:repeating-linear-gradient(90deg, currentColor 0 7px, transparent 7px 14px);
+    background-size:100% 3px; background-repeat:no-repeat; background-position:0 center;
+  }
+  .sec-head .rule::after {
+    content:""; position:absolute; right:-12px; top:50%; transform:translateY(-50%);
+    border-left:10px solid currentColor;
+    border-top:6px solid transparent; border-bottom:6px solid transparent;
+  }
+  .sec-head .hint {
+    font-family:var(--block); font-weight:400; font-size:14px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--on-accent); opacity:.85; flex:none;
+  }
+  @media (max-width:620px) { .sec-head .rule, .sec-head .hint { display:none; } }
 
-  .sides { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  /* ---------- the two sides ---------- */
+  .sides { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
   @media (max-width:720px) { .sides { grid-template-columns:1fr; } }
 
   .side {
-    background:var(--surface); border:1px solid var(--line); border-radius:4px;
-    padding:16px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow);
+    background:var(--surface); border:3px solid var(--edge); box-shadow:var(--hard);
+    padding:16px; display:flex; flex-direction:column; gap:15px;
   }
-  .side-tag {
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-    color:var(--accent-ink); font-weight:500;
+  /* the tag is a full-bleed tab across the top of the card */
+  .side-tag, .branch-tag {
+    display:flex; align-items:center; margin:-16px -16px 0; padding:9px 14px;
+    font-family:var(--block); font-weight:400; font-size:17px; letter-spacing:.09em;
+    text-transform:uppercase; border-bottom:3px solid var(--edge);
   }
+  .side:first-child .side-tag { background:var(--accent); color:var(--on-accent); }
+  .side:last-child  .side-tag { background:var(--hot);    color:var(--on-hot); }
 
-  label.fld, .fld { display:flex; flex-direction:column; gap:5px; }
+  /* ---------- fields ---------- */
+  label.fld, .fld { display:flex; flex-direction:column; gap:6px; }
   .fld-label {
-    font-size:12px; font-weight:600; letter-spacing:.02em; color:var(--muted);
-    text-transform:uppercase;
+    font-family:var(--block); font-weight:400; font-size:14px; letter-spacing:.11em;
+    color:var(--ink); text-transform:uppercase;
   }
-  .fld-label .lc { text-transform:none; font-weight:400; }
+  .fld-label .lc { font-family:var(--body); font-weight:600; text-transform:none; letter-spacing:0; }
   select, input[type="text"], input[type="password"], textarea {
-    font-family:var(--sans); font-size:14.5px; color:var(--ink);
-    background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
-    padding:8px 10px; width:100%; transition:border-color .12s, box-shadow .12s;
+    font-family:var(--body); font-size:15.5px; font-weight:500; color:var(--ink);
+    background:var(--surface); border:2.5px solid var(--edge); border-radius:0;
+    padding:9px 10px; width:100%;
   }
-  textarea { resize:vertical; min-height:74px; line-height:1.5; }
+  textarea { resize:vertical; min-height:80px; line-height:1.5; }
   select:focus-visible, input:focus-visible, textarea:focus-visible {
-    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
+    outline:none; background:var(--gold); color:var(--on-gold); box-shadow:var(--hard-sm);
   }
-  button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  button:focus-visible { outline:3px solid var(--hot); outline-offset:2px; }
 
   /* ---------- combobox ---------- */
   .combo { position:relative; }
   .combo-list {
     position:absolute; z-index:40; top:calc(100% + 3px); left:0; right:0;
-    background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
-    max-height:230px; overflow-y:auto; box-shadow:var(--shadow); padding:3px;
+    background:var(--surface); border:3px solid var(--edge); box-shadow:var(--hard);
+    max-height:250px; overflow-y:auto;
   }
   .opt {
-    display:flex; align-items:baseline; gap:8px; padding:6px 8px; border-radius:2px;
-    cursor:pointer; font-size:14px;
+    display:flex; align-items:baseline; gap:10px; padding:8px 10px; cursor:pointer;
+    font-size:15px; font-weight:500; border-bottom:2px solid var(--line);
   }
-  .opt[aria-selected="true"] { background:var(--accent-soft); }
+  .opt:last-child { border-bottom:none; }
+  .opt[aria-selected="true"] { background:var(--gold); color:var(--on-gold); }
+  .opt[aria-selected="true"] .pos,
+  .opt[aria-selected="true"] .tm { color:var(--on-gold); border-color:var(--on-gold); }
   .opt .pos {
-    font-family:var(--mono); font-size:10.5px; color:var(--accent-ink);
-    border:1px solid var(--line); border-radius:2px; padding:1px 4px; flex:none;
+    font-family:var(--mono); font-weight:700; font-size:11.5px;
+    color:var(--ink); border:2px solid var(--edge); padding:0 4px; flex:none;
   }
-  .opt .tm { font-family:var(--mono); font-size:11px; color:var(--muted); margin-left:auto; }
+  .opt .tm { font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-left:auto; }
   .opt.none { color:var(--muted); font-style:italic; cursor:default; }
 
   /* ---------- chips ---------- */
-  .chips { display:flex; flex-wrap:wrap; gap:6px; }
-  .chips:empty::after { content:"nothing yet"; font-size:13px; color:var(--muted); font-style:italic; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chips:empty::after {
+    content:"NONE"; font-family:var(--block); font-size:13px; letter-spacing:.14em;
+    color:var(--muted); border:2px dashed var(--line); padding:3px 8px;
+  }
   .chip {
-    display:inline-flex; align-items:center; gap:7px; padding:4px 6px 4px 9px;
-    background:var(--surface-2); border:1px solid var(--line); border-radius:3px;
-    font-size:13.5px; line-height:1.3;
+    display:inline-flex; align-items:center; gap:9px; padding:5px 7px 5px 10px;
+    background:var(--gold); color:var(--on-gold);
+    border:2.5px solid var(--edge); box-shadow:var(--hard-sm);
+    font-size:14.5px; font-weight:600; line-height:1.3;
   }
-  .chip.pick { font-family:var(--mono); font-size:12.5px; }
+  .chip.pick { font-family:var(--mono); font-size:13.5px; font-weight:700; }
   .chip .x {
-    border:none; background:none; color:var(--muted); cursor:pointer;
-    font-size:15px; line-height:1; padding:0 2px; border-radius:2px;
+    border:none; background:none; color:var(--on-gold); cursor:pointer;
+    font-size:19px; line-height:1; padding:0 1px; font-weight:700;
   }
-  .chip .x:hover { color:var(--cond); }
+  .chip .x:hover { color:var(--hot); }
 
-  .pick-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:6px; align-items:end; }
-  .pick-row select { padding:7px 6px; font-size:13.5px; }
-  .btn-add {
-    font-family:var(--sans); font-size:13px; font-weight:600; padding:8px 12px;
-    background:var(--surface-2); color:var(--ink); border:1px solid var(--line-strong);
-    border-radius:3px; cursor:pointer; white-space:nowrap;
+  .pick-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:7px; align-items:end; }
+  .pick-row select { padding:8px 6px; font-size:14.5px; }
+
+  /* ---------- buttons ---------- */
+  .btn-add, .btn, .preset {
+    font-family:var(--block); font-weight:400; text-transform:uppercase; cursor:pointer;
+    border:3px solid var(--edge); border-radius:0;
+    transition:transform .05s, box-shadow .05s;
   }
-  .btn-add:hover { border-color:var(--accent); color:var(--accent-ink); }
+  .btn-add {
+    font-size:16px; letter-spacing:.09em; padding:9px 13px; white-space:nowrap;
+    background:var(--surface-2); color:var(--ink); box-shadow:var(--hard-sm);
+  }
+  .btn-add:hover { background:var(--gold); }
+  .btn-add:active { transform:translate(3px,3px); box-shadow:0 0 0 var(--shade); }
+
+  .btn { font-size:20px; letter-spacing:.09em; padding:11px 24px; box-shadow:var(--hard); }
+  .btn:active { transform:translate(5px,5px); box-shadow:0 0 0 var(--shade); }
+  .btn-primary { background:var(--hot); color:var(--on-hot); }
+  .btn-primary:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:var(--hard); }
+  .btn-ghost { background:var(--surface); color:var(--ink); }
+  .btn-ghost:hover { background:var(--gold); }
+
+  .preset {
+    font-size:15px; letter-spacing:.08em; padding:7px 12px;
+    background:var(--surface); color:var(--ink);
+  }
+  .preset:hover { background:var(--surface-2); }
+  .preset[aria-pressed="true"] { background:var(--accent); color:var(--on-accent); box-shadow:var(--hard-sm); }
+  .presets { display:flex; gap:9px; flex-wrap:wrap; }
 
   /* ---------- conditional ---------- */
   .cond-toggle {
-    display:flex; align-items:flex-start; gap:10px; background:var(--surface);
-    border:1px solid var(--line); border-left:3px solid var(--cond); border-radius:4px;
-    padding:13px 15px; cursor:pointer;
+    display:flex; align-items:flex-start; gap:13px; background:var(--gold); color:var(--on-gold);
+    border:3px solid var(--edge); box-shadow:var(--hard); padding:15px 17px; cursor:pointer;
   }
-  .cond-toggle input { margin:3px 0 0; accent-color:var(--cond); width:16px; height:16px; flex:none; }
-  .cond-toggle .t { font-weight:600; font-size:14.5px; }
-  .cond-toggle .d { font-size:13px; color:var(--muted); }
+  .cond-toggle input { margin:2px 0 0; accent-color:var(--hot); width:21px; height:21px; flex:none; }
+  .cond-toggle .t {
+    font-family:var(--block); font-weight:400; font-size:21px; letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .cond-toggle .d { font-size:14.5px; color:var(--on-gold); opacity:.85; }
 
-  #condBody { margin-top:16px; display:flex; flex-direction:column; gap:16px; }
+  #condBody { margin-top:20px; display:flex; flex-direction:column; gap:20px; }
   .cond-card {
-    background:var(--surface); border:1px solid var(--line); border-radius:4px;
-    padding:16px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow);
+    background:var(--surface); border:3px solid var(--edge); box-shadow:var(--hard);
+    padding:17px; display:flex; flex-direction:column; gap:15px;
   }
-  .howto { font-size:13px; color:var(--muted); margin:0; }
-  .howto strong { color:var(--ink); font-weight:600; }
+  .howto { font-size:15px; color:var(--muted); margin:0; }
+  .howto strong { color:var(--ink); font-weight:700; }
   .subhead {
-    display:flex; align-items:center; gap:10px; margin-top:2px;
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--muted);
+    display:flex; align-items:center; gap:11px; margin-top:4px;
+    font-family:var(--block); font-weight:400; font-size:17px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink);
   }
-  .subhead::after { content:""; flex:1; height:1px; background:var(--line); }
-  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .three { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; }
-  @media (max-width:560px) { .two, .three { grid-template-columns:1fr; } }
+  .subhead::after { content:""; flex:1; height:3px; background:var(--edge); }
+  .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; align-items:end; }
+  @media (max-width:560px) { .three { grid-template-columns:1fr; } }
+  .scope-note { margin:0 0 16px; }
 
-  .presets { display:flex; gap:6px; flex-wrap:wrap; }
-  .preset {
-    font-family:var(--sans); font-size:12.5px; padding:5px 10px; cursor:pointer;
-    background:transparent; color:var(--muted);
-    border:1px solid var(--line-strong); border-radius:99px;
-  }
-  .preset:hover { color:var(--accent-ink); border-color:var(--accent); }
-  .preset[aria-pressed="true"] {
-    background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); font-weight:600;
-  }
-  .window-read {
-    font-family:var(--mono); font-size:12.5px; color:var(--ink);
-    background:var(--surface-2); border-radius:3px; padding:7px 10px;
-  }
-  .window-read.bad { color:var(--cond); background:var(--cond-soft); }
-
-  .scope-note { margin:0 0 14px; }
+  /* the usage guide: a stamped notice on tinted stock */
   .phrasing-card {
-    background:var(--surface-2); border-radius:4px; padding:13px 15px;
-    display:flex; flex-direction:column; gap:10px;
+    position:relative; background:var(--surface-2); color:var(--ink);
+    border:3px dashed var(--edge); padding:36px 18px 16px;
+    display:flex; flex-direction:column; gap:12px;
   }
-  .phrasing { display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none; }
-  .phrasing li { display:grid; grid-template-columns:34px 1fr; gap:9px; align-items:baseline; font-size:13px; }
+  .guide-label {
+    position:absolute; top:-3px; left:-3px;
+    font-family:var(--block); font-weight:400; font-size:16px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--on-hot); background:var(--hot);
+    border:3px solid var(--edge); padding:3px 12px 2px;
+  }
+  .phrasing { display:flex; flex-direction:column; gap:8px; margin:0; padding:0; list-style:none; }
+  .phrasing li { display:grid; grid-template-columns:46px 1fr; gap:11px; align-items:baseline; font-size:14.5px; }
   .phrasing .mark {
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
-    font-weight:600; text-align:right;
+    font-family:var(--block); font-size:14px; letter-spacing:.1em; text-transform:uppercase;
+    text-align:right;
   }
   .phrasing .say .mark { color:var(--good); }
-  .phrasing .avoid .mark { color:var(--cond); }
-  .phrasing q { font-family:var(--mono); font-size:12.5px; color:var(--ink); }
-  .phrasing .avoid q { text-decoration:line-through; text-decoration-color:var(--cond); color:var(--muted); }
+  .phrasing .avoid .mark { color:var(--hot); }
+  .phrasing q { font-family:var(--mono); font-weight:700; font-size:13.5px; color:var(--ink); }
+  .phrasing .avoid q { text-decoration:line-through; text-decoration-thickness:2px; text-decoration-color:var(--hot); color:var(--muted); }
   .phrasing .why { color:var(--muted); }
 
-  .branches { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  @media (max-width:720px) { .branches { grid-template-columns:1fr; } }
-  .branch {
-    background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:15px;
-    display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow);
-  }
-  .branch-tag {
-    font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-    color:var(--cond); font-weight:500;
+  .window-read {
+    font-family:var(--block); font-size:16px; letter-spacing:.06em; text-transform:uppercase;
+    background:var(--hot); color:var(--on-hot);
+    border:3px solid var(--edge); box-shadow:var(--hard-sm); padding:8px 12px;
   }
 
-  /* ---------- preview + submit ---------- */
+  /* ---------- branches ---------- */
+  .branches { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:720px) { .branches { grid-template-columns:1fr; } }
+  .branch {
+    background:var(--surface); border:3px solid var(--edge); box-shadow:var(--hard);
+    padding:16px; display:flex; flex-direction:column; gap:14px;
+  }
+  .branch-hit  .branch-tag { background:var(--accent); color:var(--on-accent); }
+  .branch-miss .branch-tag { background:var(--surface-2); color:var(--ink); }
+  .branch-tag::before {
+    content:""; display:inline-block; flex:none; width:22px; height:13px; margin-right:10px;
+    background:currentColor;
+    clip-path:polygon(0 36%, 58% 36%, 58% 0, 100% 50%, 58% 100%, 58% 64%, 0 64%);
+  }
+  .branch-hit  .branch-tag::before { transform:rotate(-20deg); }
+  .branch-miss .branch-tag::before { transform:rotate(20deg); }
+
+  /* ---------- the printout: greenbar with sprocket holes ---------- */
   .preview {
-    background:var(--surface-2); border:1px solid var(--line); border-radius:4px;
-    padding:15px 17px; font-family:var(--mono); font-size:13px; line-height:1.7;
-    white-space:pre-wrap; overflow-x:auto;
+    border:3px solid var(--edge); box-shadow:var(--hard);
+    padding:16px 36px; font-family:var(--mono); font-size:14px; font-weight:700;
+    line-height:26px; white-space:pre-wrap; overflow-x:auto; color:var(--ink);
+    background:
+      radial-gradient(circle at 11px 50%, var(--paper) 3.5px, transparent 4px) left  / 22px 26px repeat-y,
+      radial-gradient(circle at 11px 50%, var(--paper) 3.5px, transparent 4px) right / 22px 26px repeat-y,
+      repeating-linear-gradient(180deg, var(--bar1) 0 26px, var(--bar2) 26px 52px);
   }
-  .preview .ph { color:var(--muted); font-style:italic; }
-  .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:16px; }
-  .btn {
-    font-family:var(--sans); font-size:14.5px; font-weight:600; padding:11px 20px;
-    border-radius:3px; cursor:pointer; border:1px solid transparent;
+  .preview .ph { color:var(--muted); font-weight:400; font-style:italic; }
+
+  .actions { display:flex; gap:13px; flex-wrap:wrap; align-items:flex-end; margin-top:20px; }
+  .status {
+    font-family:var(--block); font-size:16px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted); padding-bottom:13px;
   }
-  .btn-primary { background:var(--accent); color:var(--on-accent); }
-  .btn-primary:disabled { opacity:.45; cursor:not-allowed; }
-  .btn-ghost { background:var(--surface); color:var(--ink); border-color:var(--line-strong); }
-  .btn-ghost:hover { border-color:var(--accent); color:var(--accent-ink); }
-  .status { font-size:13.5px; color:var(--muted); padding-bottom:11px; }
-  .status.ok { color:var(--good); font-weight:600; }
-  .status.err { color:var(--cond); font-weight:600; }
+  .status.ok  { color:var(--good); }
+  .status.err { color:var(--hot); }
 
   /* ---------- ledger ---------- */
   .entry {
-    background:var(--surface); border:1px solid var(--line); border-radius:4px;
-    padding:14px 16px; margin-bottom:10px;
+    background:var(--surface); border:3px solid var(--edge); box-shadow:var(--hard);
+    padding:15px 17px; margin-bottom:16px;
   }
-  .entry.example { border-style:dashed; background:transparent; }
-  .entry-top { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; margin-bottom:7px; }
-  .entry-when { font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  .entry.example { border-style:dashed; background:transparent; box-shadow:none; }
+  .entry-top {
+    display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+    margin:-15px -17px 12px; padding:8px 14px;
+    background:var(--surface-2); border-bottom:3px solid var(--edge);
+  }
+  .entry.example .entry-top { background:transparent; border-bottom-style:dashed; }
+  .entry-when { font-family:var(--mono); font-size:12.5px; color:var(--muted); }
   .badge {
-    font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
-    padding:2px 6px; border-radius:2px; font-weight:500;
+    font-family:var(--block); font-size:14px; letter-spacing:.12em; text-transform:uppercase;
+    padding:3px 9px 2px; border:2.5px solid var(--edge);
   }
-  .badge.cond { background:var(--cond-soft); color:var(--cond); }
-  .badge.clean { background:var(--good-soft); color:var(--good); }
-  .badge.ex { background:var(--surface-2); color:var(--muted); }
-  .entry-line { font-size:14px; margin:2px 0; }
-  .entry-cond {
-    margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); font-size:13.5px;
-  }
-  .entry-cond .q { color:var(--muted); }
-  .entry-terms { font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:5px; }
-  footer {
-    margin-top:44px; padding-top:16px; border-top:1px solid var(--line);
-    font-size:12.5px; color:var(--muted);
-  }
+  .badge.cond  { background:var(--gold);  color:var(--on-gold); }
+  .badge.clean { background:var(--accent); color:var(--on-accent); }
+  .badge.ex    { background:var(--surface-2); color:var(--ink); }
+  .entry-line { font-size:15.5px; margin:3px 0; }
+  .entry-cond { margin-top:11px; padding-top:11px; border-top:3px solid var(--line); font-size:14.5px; }
+  .entry-cond .q { font-family:var(--block); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .entry-terms { font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:8px; }
+
   @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
 </style>
 
@@ -287,6 +419,7 @@
 <div class="gate" id="gate" hidden>
   <div class="gate-card">
     <h1>Life Alert Fantasy</h1>
+    <div class="gate-rule"></div>
     <p>The trade ledger is league-only. Enter the league password to file or read trades.</p>
     <label class="fld">
       <span class="fld-label">League password</span>
@@ -297,19 +430,36 @@
   </div>
 </div>
 
+<div class="fieldnum l" aria-hidden="true">
+  <span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+  <span>40</span><span>30</span><span>20</span><span>10</span>
+</div>
+<div class="fieldnum r" aria-hidden="true">
+  <span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+  <span>40</span><span>30</span><span>20</span><span>10</span>
+</div>
+
 <div class="wrap" id="app" hidden>
   <header class="masthead">
-    <div class="eyebrow">
-      <span>Life Alert Fantasy</span><span class="dot">/</span>
-      <span>Dynasty</span><span class="dot">/</span>
-      <span>2026 Season</span><span class="dot">/</span>
-      <span>Commissioner: Gilmore</span>
+    <div class="playbill">
+      <div>
+        <h1>Trade Ledger</h1>
+        <p class="standfirst">
+          Form to help make tracking trades with draft picks and conditional picks easier.
+        </p>
+      </div>
+      <svg class="playdiagram" viewBox="0 0 200 92" aria-hidden="true" focusable="false">
+        <line class="los" x1="6" y1="46" x2="194" y2="46"/>
+        <circle cx="60" cy="30" r="7"/><circle cx="84" cy="30" r="7"/>
+        <circle cx="108" cy="30" r="7"/><circle cx="132" cy="30" r="7"/>
+        <path d="M34 60 l12 12 M46 60 l-12 12"/>
+        <path d="M156 60 l12 12 M168 60 l-12 12"/>
+        <path class="route" d="M40 58 V 24 Q 40 10 62 10 H 96"/>
+        <path class="head" d="M94 4 l14 6 -14 6 z"/>
+        <path class="route" d="M162 58 Q 186 44 186 22"/>
+        <path class="head" d="M180 24 l6 -14 6 14 z"/>
+      </svg>
     </div>
-    <h1>Trade Ledger</h1>
-    <p class="standfirst">
-      File a trade here so it's on the record. Conditional picks are welcome — write the
-      condition however you'd say it out loud, then pin down how it gets measured.
-    </p>
   </header>
 
   <div class="notice" id="notice" hidden></div>
@@ -318,16 +468,16 @@
   <section>
     <div class="sec-head">
       <h2>The trade</h2><div class="rule"></div>
-      <span class="hint">The part that happens no matter what</span>
+      <span class="hint">Assets that move either way</span>
     </div>
     <p class="howto scope-note">
-      Only what changes hands <strong>either way</strong> goes here. A pick riding on the condition
-      belongs under <strong>Conditions</strong> and <strong>nowhere else</strong> — listed twice,
-      nobody can tell whether it moves once or twice.
+      List only the players and picks that change hands regardless of the condition. A pick that
+      depends on the condition goes under <strong>Conditions</strong> instead. Listing the same pick
+      in both places makes it unclear whether it moves once or twice.
     </p>
     <div class="sides">
       <div class="side">
-        <div class="side-tag">Side A — gives up</div>
+        <div class="side-tag mk mk-x">Side A — gives up</div>
         <label class="fld">
           <span class="fld-label">Manager</span>
           <select id="mgrA"></select>
@@ -354,7 +504,7 @@
       </div>
 
       <div class="side">
-        <div class="side-tag">Side B — gives up</div>
+        <div class="side-tag mk mk-o">Side B — gives up</div>
         <label class="fld">
           <span class="fld-label">Manager</span>
           <select id="mgrB"></select>
@@ -386,15 +536,15 @@
   <section>
     <div class="sec-head">
       <h2>Conditions</h2><div class="rule"></div>
-      <span class="hint">The part that depends on what happens</span>
+      <span class="hint">Assets that move only on a result</span>
     </div>
 
     <label class="cond-toggle">
       <input type="checkbox" id="condOn">
       <span>
         <span class="t">This trade has a condition</span><br>
-        <span class="d">Something has to happen before we know which pick changes hands.
-          Every pick riding on it gets listed down here, not up in the trade.</span>
+        <span class="d">Use this when a pick depends on a result that isn't known yet. List every
+          pick that depends on the condition below, not in the section above.</span>
       </span>
     </label>
 
@@ -405,25 +555,26 @@
           <textarea id="condText" placeholder="e.g. &quot;if Ashton Jeanty finishes as a top 10 RB&quot;"></textarea>
         </label>
         <p class="howto">
-          Write it <strong>once</strong>, here. The boxes below only pin down which weeks it's
-          measured over and which picks move each way.
+          Describe the trade and the condition in plain, non-ambiguous language here. The boxes
+          below pin down which weeks it's measured over and which picks move each way.
         </p>
 
         <div class="phrasing-card">
-          <div class="subhead">Say it with a number</div>
+          <div class="guide-label">Usage guide</div>
+          <div class="subhead">Conditioning on player performance</div>
           <p class="howto">
-            This gets settled in December against the actual scoring.
-            <strong>Name the player, name the pool, give a number.</strong>
+            Follow the patterns below when the condition depends on a player's performance. Use the
+            player's ESPN display name.
           </p>
           <ul class="phrasing">
             <li class="say"><span class="mark">say</span>
               <span><q>top 20 RB</q> <span class="why">— a number and a pool</span></span></li>
             <li class="avoid"><span class="mark">not</span>
-              <span><q>an RB2</q> <span class="why">— half the league reads that as top 12, half as top 24</span></span></li>
+              <span><q>an RB2</q> <span class="why">— ambiguous and easy to confuse</span></span></li>
             <li class="say"><span class="mark">say</span>
               <span><q>top 2 RB</q> <span class="why">— if you mean the second-best back, say the number</span></span></li>
             <li class="avoid"><span class="mark">not</span>
-              <span><q>the RB2</q> <span class="why">— tier to some, rank to others; 22 spots apart</span></span></li>
+              <span><q>the RB2</q> <span class="why">— ambiguous and easy to confuse</span></span></li>
             <li class="say"><span class="mark">say</span>
               <span><q>1,000 rushing yards</q>, <q>1,500 yards from scrimmage</q>, <q>plays 14 games</q>
               <span class="why">— all countable</span></span></li>
@@ -434,31 +585,28 @@
               <span class="why">— flex ranks RB/WR/TE together, superflex adds QBs; both work</span></span></li>
           </ul>
 
-          <div class="subhead">Or hang it on a manager's season</div>
+          <div class="subhead">Conditioning on manager performance</div>
           <p class="howto">
-            Name the manager and say which finish you mean.
+            Follow the patterns below when the condition depends on a manager's season. Use the
+            manager's last name.
           </p>
           <ul class="phrasing">
             <li class="say"><span class="mark">say</span>
-              <span><q>Topper makes the playoffs</q>, <q>Maggie wins the championship</q>,
-              <q>Topper gets a top 2 seed</q>, <q>she wins at least 9 games</q>,
-              <q>he finishes dead last</q></span></li>
-            <li class="say"><span class="mark">also</span>
-              <span>a surname is enough <span class="why">— unless two managers share one, then use
-              a first name</span></span></li>
+              <span><q>Topper makes the playoffs</q>, <q>Mansfield wins the championship</q>,
+              <q>Gilmore gets a top 2 seed</q>, <q>Agne wins at least 9 games</q>,
+              <q>Nelson finishes last</q></span></li>
           </ul>
           <p class="howto">
-            A condition with no number in it can't settle itself — it lands on the commissioner in
-            December, which is the argument you were trying to avoid. Agree on the number now.
+            Every condition must be settleable with a number of some kind.
           </p>
         </div>
 
         <div class="fld">
-          <span class="fld-label">Player it hinges on <span class="lc">(if any)</span></span>
-          <p class="howto">Skip this if the condition rides on a manager's finish — just name
-            them in the box above.</p>
+          <span class="fld-label">Player the condition depends on <span class="lc">(optional)</span></span>
+          <p class="howto">Leave this blank if the condition depends on a manager's season rather
+            than a player's performance.</p>
           <div class="combo">
-            <input type="text" id="plInC" placeholder="Optional — helps settle it automatically" autocomplete="off"
+            <input type="text" id="plInC" placeholder="Optional — used to settle the condition automatically" autocomplete="off"
                    role="combobox" aria-expanded="false" aria-controls="plListC">
             <div class="combo-list" id="plListC" role="listbox" hidden></div>
           </div>
@@ -466,8 +614,23 @@
         </div>
 
         <div class="subhead">How it gets measured</div>
-        <p class="howto">Scored in the league's full PPR, same as every other week of the season.</p>
-        <div class="two">
+        <p class="howto">
+          Scoring is the league's full PPR. Every condition is settled once the playoffs are over —
+          the only thing to set here is which weeks of scoring the settlement reads.
+        </p>
+        <div class="presets">
+          <button type="button" class="preset" data-from="1" data-to="15">Regular season</button>
+          <button type="button" class="preset" data-from="1" data-to="17">Regular season and playoffs</button>
+        </div>
+        <div class="three">
+          <label class="fld">
+            <span class="fld-label">From week</span>
+            <select id="wkFrom" aria-label="First week that counts"></select>
+          </label>
+          <label class="fld">
+            <span class="fld-label">Through week</span>
+            <select id="wkTo" aria-label="Last week that counts"></select>
+          </label>
           <label class="fld">
             <span class="fld-label">Ranked by</span>
             <select id="condRank">
@@ -475,42 +638,17 @@
               <option value="ppg">Points per game</option>
             </select>
           </label>
-          <label class="fld">
-            <span class="fld-label">Settle it</span>
-            <select id="condWhen">
-              <option value="regular_season_end">After the regular season (Week 15)</option>
-              <option value="playoffs_end">After the playoffs (Week 17)</option>
-              <option value="commissioner_call">Whenever — commissioner decides</option>
-            </select>
-          </label>
         </div>
-
-        <div class="fld">
-          <span class="fld-label">Weeks that count</span>
-          <div class="presets">
-            <button type="button" class="preset" data-from="1" data-to="15">Full regular season</button>
-            <button type="button" class="preset" data-from="1" data-to="17">Whole season, playoffs included</button>
-          </div>
-          <div class="three" style="margin-top:8px">
-            <label class="fld">
-              <span class="fld-label">From week</span>
-              <select id="wkFrom" aria-label="First week that counts"></select>
-            </label>
-            <label class="fld">
-              <span class="fld-label">Through week</span>
-              <select id="wkTo" aria-label="Last week that counts"></select>
-            </label>
-          </div>
-          <div class="window-read" id="wkRead"></div>
-        </div>
+        <div class="window-read bad" id="wkRead" hidden></div>
       </div>
 
       <div class="subhead">Which picks move</div>
       <p class="howto">
-        Add every pick that rides on the condition. Leave a side empty if nothing moves that way.
+        Add every pick that depends on the condition. Leave a branch empty if no pick moves in
+        that case.
       </p>
       <div class="branches">
-        <div class="branch">
+        <div class="branch branch-hit">
           <div class="branch-tag">If the condition is met</div>
           <div class="fld">
             <span class="fld-label">Picks that move</span>
@@ -524,8 +662,8 @@
           </div>
         </div>
 
-        <div class="branch">
-          <div class="branch-tag">If it isn't</div>
+        <div class="branch branch-miss">
+          <div class="branch-tag">If the condition is not met</div>
           <div class="fld">
             <span class="fld-label">Picks that move</span>
             <div class="pick-row">
@@ -545,7 +683,7 @@
   <section>
     <div class="sec-head">
       <h2>File it</h2><div class="rule"></div>
-      <span class="hint">Read it back before you submit</span>
+      <span class="hint">Review before filing</span>
     </div>
     <div class="preview" id="preview"></div>
     <div class="actions">
@@ -568,10 +706,6 @@
     <div id="ledger"></div>
   </section>
 
-  <footer>
-    Player and manager names come straight from the ESPN league, so every entry maps to a
-    trackable identity. Nothing here writes to ESPN — this ledger is the league's own record.
-  </footer>
 </div>
 
 <script>
@@ -608,7 +742,7 @@
     b: { manager: "", players: [], picks: [] },
     conditional: false,
     condition: {
-      text: "", subject: null, when: "regular_season_end",
+      text: "", subject: null,
       rank: "total", from_week: 1, to_week: REG_WEEKS
     },
     scenarios: [ { picks: [] }, { picks: [] } ],
@@ -773,7 +907,6 @@
     redraw();
   });
   $("condText").addEventListener("input", e => { state.condition.text = e.target.value; redraw(); });
-  $("condWhen").addEventListener("change", e => { state.condition.when = e.target.value; redraw(); });
   $("condRank").addEventListener("change", e => { state.condition.rank = e.target.value; redraw(); });
   $("filedBy").addEventListener("change", e => { state.filedBy = e.target.value; });
 
@@ -841,7 +974,6 @@
       lines.push(`    Condition: ${c.text.trim() || "(not written yet)"}`);
       if (c.subject) lines.push(`    Hinges on: ${c.subject.name} (${c.subject.pos}, ${c.subject.team})`);
       lines.push(`    Measured:  ${windowText().text}, by ${RANK_TEXT[c.rank]}, ${SCORING_TEXT}`);
-      lines.push(`    Settled:   ${$("condWhen").selectedOptions[0].textContent}`);
       state.scenarios.forEach((s, i) => {
         const head = i === 0 ? "If met:     " : "If not:     ";
         const picks = s.picks.length
@@ -874,7 +1006,7 @@
     if (state.conditional) {
       if (!state.condition.text.trim()) return "Write out the condition.";
       if (state.condition.from_week > state.condition.to_week) return "The week range runs backwards.";
-      if (!state.scenarios.some(s => s.picks.length)) return "Add the picks that move in at least one scenario.";
+      if (!state.scenarios.some(s => s.picks.length)) return "Add at least one pick to one of the two branches.";
       const doubled = doubleListedPick();
       if (doubled) return `The ${doubled} is listed both in the trade and under the condition — a conditional pick belongs only under the condition.`;
     }
@@ -899,8 +1031,8 @@
     });
 
     const w = windowText();
-    $("wkRead").textContent = w.text;
-    $("wkRead").className = "window-read" + (w.bad ? " bad" : "");
+    $("wkRead").hidden = !w.bad;
+    $("wkRead").textContent = w.bad ? w.text : "";
     document.querySelectorAll(".preset").forEach(b => {
       b.setAttribute("aria-pressed",
         String(Number(b.dataset.from) === state.condition.from_week &&
@@ -936,7 +1068,6 @@
       condition: state.conditional ? {
         text: c.text.trim(),
         subject_player: c.subject,
-        settle_when: c.when,
         scoring: SCORING,
         rank_by: c.rank,
         from_week: c.from_week,
@@ -962,16 +1093,16 @@
   /* ---------- ledger rendering ---------- */
   const EXAMPLE = {
     example: true, season: SEASON, filed_at: null, conditional: true,
-    side_a: { manager: "Derek Topper", players: [{ name: "Ashton Jeanty", pos: "RB" }], picks: [] },
-    side_b: { manager: "Maggie Mansfield", players: [{ name: "Nico Collins", pos: "WR" }], picks: [] },
+    side_a: { manager: "Manager 1", players: [{ name: "Ashton Jeanty", pos: "RB" }], picks: [] },
+    side_b: { manager: "Manager 2", players: [{ name: "Nico Collins", pos: "WR" }], picks: [] },
     condition: {
       text: "If Ashton Jeanty finishes as a top-10 RB",
       scoring: "ppr", rank_by: "total", from_week: 8, to_week: 15,
       window_text: "Weeks 8–15 — from week 8 to the end of the regular season"
     },
     scenarios: [
-      { branch: "if_true", picks: [{ year: 2027, round: 1, from: "Topper", to: "Mansfield" }] },
-      { branch: "if_false", picks: [{ year: 2027, round: 2, from: "Topper", to: "Mansfield" }] }
+      { branch: "if_true", picks: [{ year: 2027, round: 1, from: "Manager 1", to: "Manager 2" }] },
+      { branch: "if_false", picks: [{ year: 2027, round: 2, from: "Manager 1", to: "Manager 2" }] }
     ]
   };
 
@@ -980,6 +1111,13 @@
       .concat((s.picks || []).map(p => `${p.year} ${ord(p.round)}`));
     return bits.length ? bits.join(", ") : "nothing";
   }
+  /* Real managers are stored as full names and shown by surname. Placeholder labels like
+     "Manager 1" have no surname to take, so leave anything ending in a number alone. */
+  const surname = n => {
+    const parts = String(n || "").trim().split(/\s+/);
+    const last = parts[parts.length - 1];
+    return parts.length > 1 && !/^\d+$/.test(last) ? last : String(n || "");
+  };
   const nameOf = v => (byId(v) ? shortName(v) : v);
 
   function entryNode(r) {
@@ -1007,9 +1145,9 @@
       const l = document.createElement("div");
       l.className = "entry-line";
       const who = document.createElement("strong");
-      who.textContent = (from.manager || "").split(" ").pop();
+      who.textContent = surname(from.manager);
       l.appendChild(who);
-      l.appendChild(document.createTextNode(` sends ${sideText(from)} to ${(to.manager || "").split(" ").pop()}`));
+      l.appendChild(document.createTextNode(` sends ${sideText(from)} to ${surname(to.manager)}`));
       div.appendChild(l);
     });
 
@@ -1110,7 +1248,7 @@
       flash("Filed. It's on the record below.", false);
       state.a.players = []; state.a.picks = [];
       state.b.players = []; state.b.picks = [];
-      state.condition = { text: "", subject: null, when: state.condition.when,
+      state.condition = { text: "", subject: null,
                           rank: state.condition.rank, from_week: 1, to_week: REG_WEEKS };
       state.scenarios = [ { picks: [] }, { picks: [] } ];
       state.conditional = false;
