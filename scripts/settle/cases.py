@@ -38,7 +38,6 @@ def trade(text, *, subject=None, rank_by="total", from_week=1, to_week=15,
         "condition": {
             "text": text,
             "subject_player": SUBJECTS.get(subject) if subject else None,
-            "settle_when": "regular_season_end",
             "scoring": "ppr",
             "rank_by": rank_by,
             "from_week": from_week,
